@@ -1,0 +1,48 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"FZl3c7TacV\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">WhatsApp</span>\",\"col\":12}},{\"id\":\"AJp2LfZqqS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Whatsapp Settings\",\"col\":3}},{\"id\":\"Os9eO4jPU8\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"x3HLhhtBIp\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Master</b></span>\",\"col\":12}},{\"id\":\"XmmbVKSags\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Numbers\",\"col\":4}},{\"id\":\"Gw6XDT2Rlk\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Templates\",\"col\":4}}]",
+ "creation": "2025-12-01 15:39:28.267795",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "comment",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "WhatsApp",
+ "links": [],
+ "modified": "2025-12-01 16:09:49.427779",
+ "modified_by": "Administrator",
+ "module": "WhatsApp",
+ "name": "WhatsApp",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [
+  {
+   "document_type": "WhatsApp Number",
+   "label": "WhatsApp Numbers",
+   "quick_list_filter": "[]"
+  },
+  {
+   "document_type": "WhatsApp Template",
+   "label": "WhatsApp Templates",
+   "quick_list_filter": "[[\"WhatsApp Template\",\"name\",\"=\",null,false]]"
+  }
+ ],
+ "roles": [],
+ "sequence_id": 28.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Whatsapp Settings",
+   "link_to": "WhatsApp Settings",
+   "type": "DocType"
+  }
+ ],
+ "title": "WhatsApp"
+}
