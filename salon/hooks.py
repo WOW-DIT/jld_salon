@@ -147,37 +147,53 @@ doc_events = {
         "on_submit": "salon.events.add_customer_deposit"
     },
     "POS Invoice": {
-        "before_insert": "salon.events.get_advances",
+        "after_insert": "salon.events.get_advances",
         "on_submit": "salon.events.deduct_deposit_balance",
     },
     "Sales Invoice": {
         "on_submit": "salon.events.deduct_deposit_balance"
     },
     "Appointment": {
-        # "validate": "salon.events.validate_availability"
+        "validate": "salon.events.validate_availability"
     }
 }
 
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"salon.tasks.all"
-# 	],
-# 	"daily": [
-# 		"salon.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"salon.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"salon.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"salon.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+    "cron": {
+		"0 */12 * * *": [
+			"salon.utilities.scheduler.send_appointment_reminder",
+		],
+		# "0/30 * * * *": [
+		# 	"erpnext.utilities.doctype.video.video.update_youtube_data",
+		# ],
+		# # Hourly but offset by 30 minutes
+		# "30 * * * *": [
+		# 	"erpnext.accounts.doctype.gl_entry.gl_entry.rename_gle_sle_docs",
+		# ],
+		# # Daily at 12PM
+		# "0 12 * * *": [
+		# 	"erpnext.stock.reorder_item.reorder_item",
+		# ],
+	},
+	# "all": [
+	# 	"salon.tasks.all"
+	# ],
+	# "daily": [
+	# 	"salon.tasks.daily"
+	# ],
+	# "hourly": [
+	# 	"salon.tasks.hourly"
+	# ],
+	# "weekly": [
+	# 	"salon.tasks.weekly"
+	# ],
+	# "monthly": [
+	# 	"salon.tasks.monthly"
+	# ],
+}
 
 # Testing
 # -------

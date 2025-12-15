@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"FZl3c7TacV\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">WhatsApp</span>\",\"col\":12}},{\"id\":\"AJp2LfZqqS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Whatsapp Settings\",\"col\":3}},{\"id\":\"Os9eO4jPU8\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"x3HLhhtBIp\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Master</b></span>\",\"col\":12}},{\"id\":\"XmmbVKSags\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Numbers\",\"col\":4}},{\"id\":\"Gw6XDT2Rlk\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Templates\",\"col\":4}}]",
+ "content": "[{\"id\":\"FZl3c7TacV\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">WhatsApp</span>\",\"col\":12}},{\"id\":\"AJp2LfZqqS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Whatsapp Settings\",\"col\":12}},{\"id\":\"hmD-DCDze2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"WhatsApp Message Broadcast\",\"col\":3}},{\"id\":\"Os9eO4jPU8\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"x3HLhhtBIp\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Master</b></span>\",\"col\":12}},{\"id\":\"XmmbVKSags\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Numbers\",\"col\":4}},{\"id\":\"Gw6XDT2Rlk\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Templates\",\"col\":4}}]",
  "creation": "2025-12-01 15:39:28.267795",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "WhatsApp",
  "links": [],
- "modified": "2025-12-01 16:09:49.427779",
+ "modified": "2025-12-07 14:28:15.292138",
  "modified_by": "Administrator",
  "module": "WhatsApp",
  "name": "WhatsApp",
@@ -34,13 +34,21 @@
   }
  ],
  "roles": [],
- "sequence_id": 28.0,
+ "sequence_id": 36.0,
  "shortcuts": [
   {
    "color": "Grey",
    "doc_view": "List",
    "label": "Whatsapp Settings",
    "link_to": "WhatsApp Settings",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "WhatsApp Message Broadcast",
+   "link_to": "WhatsApp Message Broadcast",
+   "stats_filter": "[]",
    "type": "DocType"
   }
  ],

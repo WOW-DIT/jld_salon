@@ -20,10 +20,11 @@ def add_customer_deposit(doc, method=None):
 ###### Invoices (Transactions) ######
 
 ## POS Invoice
-### before_insert
+### after_insert
 def get_advances(doc, method=None):
-    if doc.use_deposit:
+    if doc.use_deposit and doc.deposit_used:
         doc.set_advances()
+        doc.save()
 
 ## POS Invoice | Sales Invoice
 ### on_submit
@@ -56,8 +57,36 @@ def deduct_deposit_balance(doc, method=None):
 ###### Appointments (Calendar) ######
 ### validate
 def validate_availability(doc, method=None):
-    def set_appointment_end_time():
-        pass
+    def get_concurrent_guests(employee: str, scheduled_time: datetime):
+        """Calculates the number of guests already booked concurrently with the proposed slot."""
+
+        # Fetch existing appointments for the employee on that date
+        concurrent_count = frappe.db.count(
+            "Appointment",
+            filters={
+                "name": ["!=", doc.name],
+                "employee": employee,
+                "scheduled_time": scheduled_time,
+                "status": "Open",
+            },
+        )
+
+        return concurrent_count
+
+    def check_employee_leaves():
+        leaves = frappe.get_all(
+            "Leave Application",
+            filters={
+                "employee": doc.employee,
+                "status": "Approved",
+                "from_date": ["<=", doc.selected_date],
+                "to_date": [">=", doc.selected_date],
+            }
+        )
+        if leaves:
+            frappe.throw(f"The employee is not available on {doc.selected_date}.")
+
+    check_employee_leaves()
 
     start_date = doc.scheduled_time
 
@@ -81,9 +110,35 @@ def validate_availability(doc, method=None):
         "employee": doc.employee,
         "weekday": str(weekday),
     }
-    appointment_settings = frappe.get_all(
+    setting = frappe.get_all(
         "Appointment Setting",
         filters=filters,
-        fields=["name", "duration", "from", "to"]
+        fields=["name", "customers_capacity", "duration", "from", "to"]
     )
-    frappe.throw(str(appointment_settings))
+
+    if not setting:
+        frappe.throw(
+            "No appointment settings found for this employee on the selected day."
+        )
+
+    capacity = int(setting[0].customers_capacity or 1)
+
+    concurrent_count  = get_concurrent_guests(
+        doc.employee,
+        doc.scheduled_time
+    )
+
+    if concurrent_count >= capacity:
+        frappe.throw(
+            f"""
+            This time slot is fully booked.
+
+            • Current guests: {concurrent_count}
+            • Allowed capacity: {capacity}
+
+            Please check the calendar or select another time.
+            """,
+            title="Slot Not Available",
+        )
+
+    return True

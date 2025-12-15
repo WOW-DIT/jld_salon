@@ -22,7 +22,7 @@ def get_available_times(current_appointment_id: str, date: str, department: str,
         else:
             raise TypeError(f"Unsupported time type: {type(time_value)}")
         
-    def get_concurrent_guests(employee: str, check_datetime: datetime, duration_seconds: int):
+    def get_concurrent_guests(employee: str, check_datetime: datetime):
         """Calculates the number of guests already booked concurrently with the proposed slot."""
         
         proposed_start = check_datetime
@@ -31,18 +31,15 @@ def get_available_times(current_appointment_id: str, date: str, department: str,
         full_datetime_str = proposed_start.strftime("%Y-%m-%d %H:%M:%S")
 
         # Fetch existing appointments for the employee on that date
-        existing_appointments = frappe.get_all(
+        concurrent_count = frappe.db.count(
             "Appointment",
             filters={
                 "name": ["!=", current_appointment_id],
                 "employee": employee,
                 "scheduled_time": full_datetime_str,
                 "status": "Open",
-            },
-            fields=["scheduled_time", "scheduled_end_time"]
+            }
         )
-
-        concurrent_count = len(existing_appointments)
 
         return concurrent_count
     
@@ -111,28 +108,17 @@ def get_available_times(current_appointment_id: str, date: str, department: str,
         
         if slot_end_time > end_datetime:
             break
-
             
         # --- Integration Step 2 & 3: Check Concurrent Bookings ---
         # Determine how many guests are already booked in this specific slot
         booked_count = get_concurrent_guests(
             employee=employee, 
-            check_datetime=current_time, 
-            duration_seconds=duration_seconds
+            check_datetime=current_time,
         )
         
         remaining_capacity = customers_capacity - booked_count
 
         # --- Integration Step 4: Filtering ---
-        # if remaining_capacity > 0:
-            # slot = {
-            #     "start_time": current_time.strftime("%H:%M:%S"),
-            #     "end_time": slot_end_time.strftime("%H:%M:%S"),
-            #     "duration": duration_seconds,
-            #     "total_capacity": customers_capacity,
-            #     "booked_count": booked_count,
-            #     "remaining_capacity": remaining_capacity
-            # }
         slot = {
             "value": current_time.strftime("%H:%M:%S"),
             "available": remaining_capacity > 0

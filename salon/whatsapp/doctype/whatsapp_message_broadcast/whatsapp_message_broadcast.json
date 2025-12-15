@@ -11,7 +11,8 @@
   "text",
   "template",
   "components",
-  "reference_id"
+  "reference_id",
+  "amended_from"
  ],
  "fields": [
   {
@@ -63,12 +64,23 @@
    "fieldname": "reference_id",
    "fieldtype": "Data",
    "label": "Reference ID"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "WhatsApp Message Broadcast",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-12-02 11:44:17.481166",
+ "modified": "2025-12-07 11:30:39.177093",
  "modified_by": "Administrator",
  "module": "WhatsApp",
  "name": "WhatsApp Message Broadcast",
