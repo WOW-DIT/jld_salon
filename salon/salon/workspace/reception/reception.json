@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"c_mHzHLu4h\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Your shortcuts</b></span>\",\"col\":12}},{\"id\":\"DUzufqkX97\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"View Calendar\",\"col\":12}},{\"id\":\"W3wVXuWNK1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Today's Appointments\",\"col\":3}},{\"id\":\"gL-x8GtjsO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Offers\",\"col\":3}},{\"id\":\"sa_0lwcBf3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customers\",\"col\":3}},{\"id\":\"hW5hc5ZoJK\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Issues\",\"col\":3}},{\"id\":\"8ctoClEF2K\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"7u9W9mqica\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Masters</b></span>\",\"col\":12}},{\"id\":\"jnIqf1SgYh\",\"type\":\"card\",\"data\":{\"card_name\":\"Services & Pricing\",\"col\":4}},{\"id\":\"58WnstbMcK\",\"type\":\"card\",\"data\":{\"card_name\":\"Appointment\",\"col\":4}},{\"id\":\"qNjK8VJuCU\",\"type\":\"card\",\"data\":{\"card_name\":\"Transactions\",\"col\":4}},{\"id\":\"o0P7vlJqSW\",\"type\":\"card\",\"data\":{\"card_name\":\"Employee Management\",\"col\":4}}]",
+ "content": "[{\"id\":\"c_mHzHLu4h\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Your shortcuts</b></span>\",\"col\":12}},{\"id\":\"DUzufqkX97\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"View Calendar\",\"col\":12}},{\"id\":\"W3wVXuWNK1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Today's Appointments\",\"col\":3}},{\"id\":\"gL-x8GtjsO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Offers\",\"col\":3}},{\"id\":\"sa_0lwcBf3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customers\",\"col\":3}},{\"id\":\"EmIi2mHXTf\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Open Services\",\"col\":3}},{\"id\":\"hW5hc5ZoJK\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Issues\",\"col\":3}},{\"id\":\"8ctoClEF2K\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"7u9W9mqica\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Masters</b></span>\",\"col\":12}},{\"id\":\"jnIqf1SgYh\",\"type\":\"card\",\"data\":{\"card_name\":\"Services & Pricing\",\"col\":4}},{\"id\":\"58WnstbMcK\",\"type\":\"card\",\"data\":{\"card_name\":\"Appointment\",\"col\":4}},{\"id\":\"qNjK8VJuCU\",\"type\":\"card\",\"data\":{\"card_name\":\"Transactions\",\"col\":4}},{\"id\":\"o0P7vlJqSW\",\"type\":\"card\",\"data\":{\"card_name\":\"Employee Management\",\"col\":4}}]",
  "creation": "2025-12-07 12:08:56.746162",
  "custom_blocks": [],
  "docstatus": 0,
@@ -28,35 +28,6 @@
    "label": "Deposits",
    "link_count": 0,
    "link_to": "Payment Entry",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Appointment",
-   "link_count": 2,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Appointments",
-   "link_count": 0,
-   "link_to": "Appointment",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Appointment Settings",
-   "link_count": 0,
-   "link_to": "Appointment Setting",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -124,7 +95,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Employee Management",
-   "link_count": 2,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -148,9 +119,58 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointment Settings",
+   "link_count": 0,
+   "link_to": "Appointment Setting",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointment",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointments",
+   "link_count": 0,
+   "link_to": "Appointment",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointment Reminder Schedule",
+   "link_count": 0,
+   "link_to": "Appointment Reminder Schedule",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointment Reminder Log",
+   "link_count": 0,
+   "link_to": "Appointment Reminder Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-12-14 15:49:16.246098",
+ "modified": "2025-12-24 11:55:04.645291",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Reception",
@@ -167,8 +187,17 @@
    "role": "Reception Supervisor"
   }
  ],
- "sequence_id": 2.0,
+ "sequence_id": 3.0,
  "shortcuts": [
+  {
+   "color": "Red",
+   "doc_view": "List",
+   "format": "{}",
+   "label": "Open Services",
+   "link_to": "Customer Cart",
+   "stats_filter": "[[\"Customer Cart\",\"docstatus\",\"=\",\"0\",false]]",
+   "type": "DocType"
+  },
   {
    "color": "Green",
    "doc_view": "List",

@@ -142,3 +142,15 @@ def validate_availability(doc, method=None):
         )
 
     return True
+
+
+def send_review_messages(doc, method=None):
+    if not doc.invoice:
+        frappe.throw("Invoice is required before submitting")
+
+    for service in doc.services:
+        review = frappe.new_doc("Service Review")
+        review.order_id = doc.name
+        review.service = service.service
+        review.employee = service.employee
+        review.insert(ignore_permissions=True)

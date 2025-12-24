@@ -1,0 +1,48 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"sdCdgKW_B3\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Lab</span>\",\"col\":12}},{\"id\":\"MtYeQYoCdB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer's Lab\",\"col\":3}}]",
+ "creation": "2025-12-24 11:09:11.788151",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "clipboard",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Lab",
+ "links": [],
+ "modified": "2025-12-24 11:55:04.835149",
+ "modified_by": "Administrator",
+ "module": "Salon",
+ "name": "Lab",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Lab"
+  },
+  {
+   "role": "Salon Admin"
+  },
+  {
+   "role": "Call Center"
+  }
+ ],
+ "sequence_id": 7.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Customer's Lab",
+   "link_to": "Customer Lab",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "Lab"
+}

@@ -5,7 +5,7 @@
    "label": "Warehouse wise Stock Value"
   }
  ],
- "content": "[{\"id\":\"kID6FmfoBS\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Warehouse wise Stock Value\",\"col\":12}},{\"id\":\"ZIa3TKitES\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Stock Value\",\"col\":4}},{\"id\":\"m0_bb9PQDP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Warehouses\",\"col\":4}},{\"id\":\"S-5DGaFO3B\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Active Items\",\"col\":4}},{\"id\":\"ap4_tI-jwr\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"LVWLzfOkHt\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Your shortcuts</b></span>\",\"col\":12}},{\"id\":\"HIsud6uBRb\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item\",\"col\":3}},{\"id\":\"yZEsn85hSq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Material Request\",\"col\":3}},{\"id\":\"IBMXEUfJjq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Purchase Order\",\"col\":3}},{\"id\":\"QqYqajWn5A\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Purchase Analytics\",\"col\":3}},{\"id\":\"EH6GLVx5aB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Purchase Order Analysis\",\"col\":3}},{\"id\":\"uBQvkjDFTh\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Buying Dashboard\",\"col\":3}},{\"id\":\"ockttndp_z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Dashboard\",\"col\":3}},{\"id\":\"BSxmKtVhUv\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"fXl8N7K9am\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"id\":\"R5mHH0Gpzh\",\"type\":\"card\",\"data\":{\"card_name\":\"Items & Pricing\",\"col\":4}},{\"id\":\"q5r3tkFKrD\",\"type\":\"card\",\"data\":{\"card_name\":\"Buying\",\"col\":4}},{\"id\":\"Nt1mzKJLlC\",\"type\":\"card\",\"data\":{\"card_name\":\"Selling\",\"col\":4}},{\"id\":\"rW_b9rI-e3\",\"type\":\"card\",\"data\":{\"card_name\":\"Warehouse & Stocks\",\"col\":4}},{\"id\":\"kM4p-HR1Io\",\"type\":\"card\",\"data\":{\"card_name\":\"Supplier\",\"col\":4}},{\"id\":\"p7Ow-vjQCn\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"d1i76F-MjR\",\"type\":\"card\",\"data\":{\"card_name\":\"Stock Reports\",\"col\":4}},{\"id\":\"iW7BCk8RIe\",\"type\":\"card\",\"data\":{\"card_name\":\"Buying Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"ZIa3TKitES\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Stock Value\",\"col\":4}},{\"id\":\"m0_bb9PQDP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Warehouses\",\"col\":4}},{\"id\":\"S-5DGaFO3B\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Active Items\",\"col\":4}},{\"id\":\"kID6FmfoBS\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Warehouse wise Stock Value\",\"col\":12}},{\"id\":\"ap4_tI-jwr\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"LVWLzfOkHt\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Your shortcuts</b></span>\",\"col\":12}},{\"id\":\"HIsud6uBRb\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item\",\"col\":3}},{\"id\":\"yZEsn85hSq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Material Request\",\"col\":3}},{\"id\":\"IBMXEUfJjq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Purchase Order\",\"col\":3}},{\"id\":\"QqYqajWn5A\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Purchase Analytics\",\"col\":3}},{\"id\":\"EH6GLVx5aB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Purchase Order Analysis\",\"col\":3}},{\"id\":\"uBQvkjDFTh\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Buying Dashboard\",\"col\":3}},{\"id\":\"ockttndp_z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Dashboard\",\"col\":3}},{\"id\":\"BSxmKtVhUv\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"fXl8N7K9am\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports &amp; Masters</b></span>\",\"col\":12}},{\"id\":\"R5mHH0Gpzh\",\"type\":\"card\",\"data\":{\"card_name\":\"Items & Pricing\",\"col\":4}},{\"id\":\"q5r3tkFKrD\",\"type\":\"card\",\"data\":{\"card_name\":\"Buying\",\"col\":4}},{\"id\":\"Nt1mzKJLlC\",\"type\":\"card\",\"data\":{\"card_name\":\"Selling\",\"col\":4}},{\"id\":\"rW_b9rI-e3\",\"type\":\"card\",\"data\":{\"card_name\":\"Warehouse & Stocks\",\"col\":4}},{\"id\":\"kM4p-HR1Io\",\"type\":\"card\",\"data\":{\"card_name\":\"Supplier\",\"col\":4}},{\"id\":\"p7Ow-vjQCn\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"d1i76F-MjR\",\"type\":\"card\",\"data\":{\"card_name\":\"Stock Reports\",\"col\":4}},{\"id\":\"iW7BCk8RIe\",\"type\":\"card\",\"data\":{\"card_name\":\"Buying Reports\",\"col\":4}}]",
  "creation": "2025-12-07 14:28:01.057437",
  "custom_blocks": [],
  "docstatus": 0,
@@ -461,7 +461,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-12-07 17:22:01.951614",
+ "modified": "2025-12-24 11:55:04.728412",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Storage",
@@ -488,7 +488,7 @@
    "role": "Storage Manager"
   }
  ],
- "sequence_id": 4.0,
+ "sequence_id": 5.0,
  "shortcuts": [
   {
    "color": "Yellow",
@@ -520,7 +520,7 @@
    "format": "{} Available",
    "label": "Item",
    "link_to": "Item",
-   "stats_filter": "[[\"Item\",\"disabled\",\"=\",0,false],[\"Item\",\"item_group\",\"=\",\"Services\",false]]",
+   "stats_filter": "[[\"Item\",\"disabled\",\"=\",0,false],[\"Item\",\"item_group\",\"!=\",\"Services\",false]]",
    "type": "DocType"
   },
   {

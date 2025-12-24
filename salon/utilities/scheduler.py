@@ -1,6 +1,7 @@
 import frappe
 from datetime import datetime, timedelta
 from frappe.utils import nowdate, add_days, get_datetime, date_diff, add_to_date
+import requests
 
 def unify_mobile_number(number, document):
     """
@@ -9,6 +10,7 @@ def unify_mobile_number(number, document):
     
     :return: 9665... mobile number format
     """
+    unified_number = None
     if len(number) == 10 and number[:2] == "05":
         short_number = str(number[1:]).replace(" ", "")
 
@@ -30,6 +32,10 @@ def unify_mobile_number(number, document):
 
 # @frappe.whitelist(allow_guest=True)
 def send_appointment_reminder():
+    whatsapp_settings = frappe.get_doc("WhatsApp Settings", "WhatsApp Settings")
+    api_base_url = whatsapp_settings.api_url
+    api_key = whatsapp_settings.get_password("api_key")
+
     """
     Called every day to send reminders via WhatsApp or SMS
     """
@@ -37,32 +43,48 @@ def send_appointment_reminder():
         template = frappe.get_doc("WhatsApp Template", template_name)
         whatsapp_number = frappe.get_doc("WhatsApp Number", template.whatsapp_number)
 
-        broadcast = frappe.new_doc("WhatsApp Message")
-        broadcast.whatsapp_number = whatsapp_number
-        broadcast.append("numbers", {"number": customer_number})
-        broadcast.message_type = "template"
-        broadcast.template = template_name
-        broadcast.append(
-            "components",
-            {
-                "section_name": "body",
-                "order": 1,
-                "type": "text",
-                "text": customer_name
-            }
-        )
-        broadcast.append(
-            "components",
-            {
-                "section_name": "body",
-                "order": 2,
-                "type": "text",
-                "text": appointment_time,
-            }
-        )
-        broadcast.insert(ignore_permissions=True)
+        url = f"{api_base_url}/whatsapp_integration.whatsapp_integration.doctype.whatsapp_broadcast_message.whatsapp_broadcast_message.init_broadcast"
 
+        payload = {
+            "instance_id": whatsapp_number.instance_id,
+            "message_type": "template",
+            "text": None,
+            "template_name": template_name,
+            "numbers": [
+                customer_number
+            ],
+            "components": [
+                {
+                    "section_name": "body",
+                    "params": [
+                        {
+                            "type": "text",
+                            "text": f"*{customer_name}*"
+                        },
+                        {
+                            "type": "text",
+                            "text": f"*{appointment_time}*"
+                        }
+                    ]
+                }
+            ]
+        }
+        headers = {"Authorization": f"Basic {api_key}"}
+        response = requests.post(url, headers=headers, json=payload)
 
+        if response.status_code == 200:
+            data = response.json()["message"]
+
+            if data.get("success"):
+                reference_id = data.get("reference_id")
+
+                url = f"{api_base_url}/whatsapp_integration.whatsapp_integration.doctype.whatsapp_broadcast_message.whatsapp_broadcast_message.submit_broadcast"
+                payload = {
+                    "reference_id": reference_id
+                }
+                response = requests.post(url, headers=headers, json=payload)
+
+    
     today = nowdate()
 
     schedules = frappe.get_all(
@@ -107,18 +129,12 @@ def send_appointment_reminder():
             customer_number = unify_mobile_number(ap.customer_phone_number, ap)
 
             ## Invalid customer number
-            if customer_number is None:
+            if customer_number == None:
                 continue
             
             try:
-                log = frappe.new_doc("Appointment Reminder Log")
-                log.appointment = ap.name
-                log.schedule = s.name
-                log.sent_date = today
-                log.insert(ignore_permissions=True)
-                continue
                 ## Send reminder
-                if s.channel == "WhatsApp":
+                if s.channel == "WhatsApp" or s.channel == "WhatsApp & SMS":
                     response = send_reminder_to_whatsapp(
                         ap.customer_name,
                         customer_number,
@@ -126,15 +142,8 @@ def send_appointment_reminder():
                         s.whatsapp_template,
                     )
 
-                elif s.channel == "SMS":
+                if s.channel == "SMS" or s.channel == "WhatsApp & SMS":
                     pass
-                elif s.channel == "WhatsApp & SMS":
-                    response = send_reminder_to_whatsapp(
-                        ap.customer_name,
-                        customer_number,
-                        ap.scheduled_time,
-                        s.whatsapp_template,
-                    )
                 
                 ## Save reminder logs
                 log = frappe.new_doc("Appointment Reminder Log")
@@ -143,6 +152,7 @@ def send_appointment_reminder():
                 log.sent_date = today
                 log.insert(ignore_permissions=True)
             except Exception as e:
+                frappe.throw(str(e))
                 pass
 
         frappe.db.commit()

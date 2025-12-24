@@ -2,6 +2,23 @@ import frappe
 from datetime import datetime, timedelta, time
 
 @frappe.whitelist()
+def update_schedulers():
+    doc = frappe.new_doc(
+        "Scheduled Job Type"
+    )
+    doc.method = "salon.utilities.scheduler.send_appointment_reminder"
+    doc.cron_format = "0 */12 * * *"
+    doc.frequency = "Cron"
+    doc.insert(ignore_permissions=True)
+    
+    frappe.db.commit()
+    dd = frappe.get_all(doc.doctype, filters={"method": doc.method})
+    return dd
+    
+    # return frappe.db.get_all("Scheduled Job Type", filters={"method": "scheduler.send_appointment_reminder"})
+    # sync_jobs()
+
+@frappe.whitelist()
 def get_available_times(current_appointment_id: str, date: str, department: str, employee: str):
 
     def parse_time_field(time_value):
@@ -143,3 +160,41 @@ def get_end_date(start_date: str, duration: int):
     end_date = date_obj + step
 
     return end_date.strftime("%Y-%m-%d %H:%M:%S")
+
+
+@frappe.whitelist()
+def set_package_appointments(
+    department_id,
+    service_id,
+    employee_id,
+    selected_date,
+    start_time,
+    end_time,
+):
+    package = frappe.get_doc("Item", service_id)
+    if not package.is_package:
+        return {"success": True}
+
+    if isinstance(selected_date, str):
+        date_obj = datetime.strptime(selected_date, "%Y-%m-%d")
+    else:
+        # If date is already a datetime object
+        date_obj = selected_date
+
+    weekday = date_obj.weekday()
+
+    for item in package.child_items:
+        service = frappe.get_doc("Item", item.item)
+        department = service.item_group
+
+    ## Get employee shift settings
+    filters = {
+        "employee": employee_id,
+        "department": department_id,
+        "weekday": str(weekday),
+    }
+    appointment_settings = frappe.get_all(
+        "Appointment Setting",
+        filters=filters,
+        fields=["name", "customers_capacity", "duration", "from", "to"]
+    )

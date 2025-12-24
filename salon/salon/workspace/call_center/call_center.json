@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"ZL31INeiiM\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Your shortcuts</span>\",\"col\":12}},{\"id\":\"Z8_Bl3EaDp\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"View Calendar\",\"col\":12}},{\"id\":\"S46B10bsuK\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Today's Appointments\",\"col\":3}},{\"id\":\"-iqla6HZqJ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Offers\",\"col\":3}},{\"id\":\"n4uAKg0m0l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customers\",\"col\":3}},{\"id\":\"rMvyEBoq5S\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Issues\",\"col\":3}},{\"id\":\"CAFznju1RW\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"E9jA1_z5gr\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Masters</b></span>\",\"col\":12}},{\"id\":\"4Nf1n_k-MS\",\"type\":\"card\",\"data\":{\"card_name\":\"Services & Pricing\",\"col\":4}},{\"id\":\"v9NyYU0ol7\",\"type\":\"card\",\"data\":{\"card_name\":\"Appointment\",\"col\":4}},{\"id\":\"CKjoIQdaxW\",\"type\":\"card\",\"data\":{\"card_name\":\"Transactions\",\"col\":4}},{\"id\":\"XndMoE6PQa\",\"type\":\"card\",\"data\":{\"card_name\":\"Employee Management\",\"col\":4}},{\"id\":\"L-rux2RMjD\",\"type\":\"card\",\"data\":{\"card_name\":\"Support\",\"col\":4}},{\"id\":\"ScU0O65jhP\",\"type\":\"card\",\"data\":{\"card_name\":\"Performance Quality\",\"col\":4}},{\"id\":\"-T9-UX7LEn\",\"type\":\"spacer\",\"data\":{\"col\":12}}]",
+ "content": "[{\"id\":\"ZL31INeiiM\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Your shortcuts</span>\",\"col\":12}},{\"id\":\"Z8_Bl3EaDp\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"View Calendar\",\"col\":12}},{\"id\":\"S46B10bsuK\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Today's Appointments\",\"col\":3}},{\"id\":\"-iqla6HZqJ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Offers\",\"col\":3}},{\"id\":\"n4uAKg0m0l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customers\",\"col\":3}},{\"id\":\"gz4BpIZuOT\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Open Services\",\"col\":3}},{\"id\":\"rMvyEBoq5S\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Issues\",\"col\":3}},{\"id\":\"CAFznju1RW\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"E9jA1_z5gr\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Masters</b></span>\",\"col\":12}},{\"id\":\"4Nf1n_k-MS\",\"type\":\"card\",\"data\":{\"card_name\":\"Services & Pricing\",\"col\":4}},{\"id\":\"v9NyYU0ol7\",\"type\":\"card\",\"data\":{\"card_name\":\"Appointment\",\"col\":4}},{\"id\":\"CKjoIQdaxW\",\"type\":\"card\",\"data\":{\"card_name\":\"Transactions\",\"col\":4}},{\"id\":\"XndMoE6PQa\",\"type\":\"card\",\"data\":{\"card_name\":\"Employee Management\",\"col\":4}},{\"id\":\"L-rux2RMjD\",\"type\":\"card\",\"data\":{\"card_name\":\"Support\",\"col\":4}},{\"id\":\"ScU0O65jhP\",\"type\":\"card\",\"data\":{\"card_name\":\"Performance Quality\",\"col\":4}},{\"id\":\"-T9-UX7LEn\",\"type\":\"spacer\",\"data\":{\"col\":12}}]",
  "creation": "2025-12-04 12:26:18.024560",
  "custom_blocks": [],
  "docstatus": 0,
@@ -28,25 +28,6 @@
    "label": "Issues",
    "link_count": 0,
    "link_to": "Issue",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Appointment",
-   "link_count": 1,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Appointments",
-   "link_count": 0,
-   "link_to": "Appointment",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -211,8 +192,47 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Appointment",
+   "link_count": 3,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointments",
+   "link_count": 0,
+   "link_to": "Appointment",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointment Reminder Schedule",
+   "link_count": 0,
+   "link_to": "Appointment Reminder Schedule",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointment Reminder Log",
+   "link_count": 0,
+   "link_to": "Appointment Reminder Log",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Employee Management",
-   "link_count": 2,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -236,9 +256,19 @@
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Appointment Settings",
+   "link_count": 0,
+   "link_to": "Appointment Setting",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2025-12-14 15:35:03.545020",
+ "modified": "2025-12-24 11:55:04.590288",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Call Center",
@@ -255,8 +285,26 @@
    "role": "Call Center Supervisor"
   }
  ],
- "sequence_id": 1.0,
+ "sequence_id": 2.0,
  "shortcuts": [
+  {
+   "color": "Red",
+   "doc_view": "List",
+   "format": "{}",
+   "label": "Open Services",
+   "link_to": "Customer Cart",
+   "stats_filter": "[[\"Customer Cart\",\"docstatus\",\"=\",\"0\",false]]",
+   "type": "DocType"
+  },
+  {
+   "color": "Red",
+   "doc_view": "List",
+   "format": "{} Open",
+   "label": "Issues",
+   "link_to": "Issue",
+   "stats_filter": "[[\"Issue\",\"status\",\"=\",\"Open\",false]]",
+   "type": "DocType"
+  },
   {
    "color": "Green",
    "doc_view": "List",
@@ -289,15 +337,6 @@
    "label": "View Calendar",
    "type": "URL",
    "url": "/app/appointment/view/calendar/default"
-  },
-  {
-   "color": "Red",
-   "doc_view": "List",
-   "format": "{}",
-   "label": "Issues",
-   "link_to": "Issue",
-   "stats_filter": "[[\"Issue\",\"status\",\"=\",\"Open\",false]]",
-   "type": "DocType"
   }
  ],
  "title": "Call Center"

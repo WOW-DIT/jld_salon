@@ -6,7 +6,11 @@
  "engine": "InnoDB",
  "field_order": [
   "api_url",
-  "api_key"
+  "api_key",
+  "api_version",
+  "defaults_section",
+  "default_review_number",
+  "default_reminder_number"
  ],
  "fields": [
   {
@@ -19,13 +23,39 @@
    "fieldtype": "Data",
    "label": "API URL",
    "read_only": 1
+  },
+  {
+   "fieldname": "defaults_section",
+   "fieldtype": "Section Break",
+   "label": "Defaults"
+  },
+  {
+   "fieldname": "default_review_number",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Default Review Number",
+   "options": "WhatsApp Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "default_reminder_number",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Default Reminder Number",
+   "options": "WhatsApp Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "api_version",
+   "fieldtype": "Data",
+   "label": "API Version"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-12-02 10:55:45.709746",
+ "modified": "2025-12-23 13:15:28.863358",
  "modified_by": "Administrator",
  "module": "WhatsApp",
  "name": "WhatsApp Settings",

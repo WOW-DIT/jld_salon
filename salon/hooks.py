@@ -155,7 +155,10 @@ doc_events = {
     },
     "Appointment": {
         "validate": "salon.events.validate_availability"
-    }
+    },
+    "Customer Cart": {
+        "on_submit": "salon.events.send_review_messages"
+	}
 }
 
 # Scheduled Tasks

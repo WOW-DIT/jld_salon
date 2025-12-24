@@ -30,7 +30,7 @@
    "fieldname": "department",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Category",
+   "label": "Department",
    "link_filters": "[[\"Item Group\",\"parent_item_group\",\"=\",\"Services\"]]",
    "options": "Item Group",
    "reqd": 1
@@ -93,7 +93,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-14 14:58:57.575186",
+ "modified": "2025-12-18 13:11:09.833063",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Appointment Setting",

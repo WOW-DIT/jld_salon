@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"nvtPWa6f9K\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Your shortcuts</b></span>\",\"col\":12}},{\"id\":\"iEv1AYu-wE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Open Point of Sale\",\"col\":12}},{\"id\":\"9n_5esofnQ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Offers\",\"col\":3}},{\"id\":\"VpXwa2e3gO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Unclosed POS\",\"col\":3}},{\"id\":\"Mwj3uXTgux\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"LMz0YUOqd9\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Masters</b></span>\",\"col\":12}},{\"id\":\"7krpduhioK\",\"type\":\"card\",\"data\":{\"card_name\":\"POS\",\"col\":4}},{\"id\":\"ooEcd-_XlY\",\"type\":\"card\",\"data\":{\"card_name\":\"Transactions\",\"col\":4}},{\"id\":\"BFX7KNw3Bu\",\"type\":\"card\",\"data\":{\"card_name\":\"Services & Pricing\",\"col\":4}},{\"id\":\"3J4quqQDS1\",\"type\":\"card\",\"data\":{\"card_name\":\"Customers\",\"col\":4}},{\"id\":\"MuAvpdGcNu\",\"type\":\"card\",\"data\":{\"card_name\":\"Appointments\",\"col\":4}}]",
+ "content": "[{\"id\":\"nvtPWa6f9K\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Your shortcuts</b></span>\",\"col\":12}},{\"id\":\"iEv1AYu-wE\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Open Point of Sale\",\"col\":12}},{\"id\":\"9n_5esofnQ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Offers\",\"col\":3}},{\"id\":\"VpXwa2e3gO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Unclosed POS\",\"col\":3}},{\"id\":\"i_i7o-pZqh\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Open Services\",\"col\":3}},{\"id\":\"Mwj3uXTgux\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"LMz0YUOqd9\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Masters</b></span>\",\"col\":12}},{\"id\":\"7krpduhioK\",\"type\":\"card\",\"data\":{\"card_name\":\"POS\",\"col\":4}},{\"id\":\"ooEcd-_XlY\",\"type\":\"card\",\"data\":{\"card_name\":\"Transactions\",\"col\":4}},{\"id\":\"BFX7KNw3Bu\",\"type\":\"card\",\"data\":{\"card_name\":\"Services & Pricing\",\"col\":4}},{\"id\":\"3J4quqQDS1\",\"type\":\"card\",\"data\":{\"card_name\":\"Customers\",\"col\":4}},{\"id\":\"MuAvpdGcNu\",\"type\":\"card\",\"data\":{\"card_name\":\"Appointments\",\"col\":4}}]",
  "creation": "2025-12-04 14:26:02.079745",
  "custom_blocks": [],
  "docstatus": 0,
@@ -209,7 +209,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-12-07 14:28:13.881854",
+ "modified": "2025-12-24 11:55:04.686755",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "POS",
@@ -223,8 +223,17 @@
    "role": "Cashier"
   }
  ],
- "sequence_id": 3.0,
+ "sequence_id": 4.0,
  "shortcuts": [
+  {
+   "color": "Red",
+   "doc_view": "List",
+   "format": "{}",
+   "label": "Open Services",
+   "link_to": "Customer Cart",
+   "stats_filter": "[[\"Customer Cart\",\"docstatus\",\"=\",\"0\",false]]",
+   "type": "DocType"
+  },
   {
    "color": "Green",
    "doc_view": "List",
