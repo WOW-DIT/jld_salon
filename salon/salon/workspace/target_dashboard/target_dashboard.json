@@ -1,0 +1,64 @@
+{
+ "charts": [
+  {
+   "chart_name": "Service Ratings",
+   "label": "Service Ratings"
+  }
+ ],
+ "content": "[{\"id\":\"ym998L1M-7\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Monthly Target List\",\"col\":3}},{\"id\":\"VqjXnX0p0S\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"2nw2Uo-AXQ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Monthly</span>\",\"col\":12}},{\"id\":\"Fujb1uhuRW\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Monthly Target\",\"col\":4}},{\"id\":\"17FQm3y-IQ\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Monthly Total Payments\",\"col\":4}},{\"id\":\"k6HtGdWP3H\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"byOkxqXpRr\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Daily</b></span>\",\"col\":12}},{\"id\":\"Yp86hgDBeE\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Daily Target\",\"col\":4}},{\"id\":\"qEn-0b-YBw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Daily Total Payments\",\"col\":4}},{\"id\":\"OBIJVsMU9w\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"bqapzp103b\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h3\\\">Ratings</span>\",\"col\":12}},{\"id\":\"bRYXRGLCsF\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Service Ratings\",\"col\":12}}]",
+ "creation": "2025-12-24 11:54:52.501334",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "number-card",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "Target Dashboard",
+ "links": [],
+ "modified": "2026-01-06 17:27:51.509822",
+ "modified_by": "Administrator",
+ "module": "Salon",
+ "name": "Target Dashboard",
+ "number_cards": [
+  {
+   "label": "Daily Total Payments",
+   "number_card_name": "Daily Total Payments"
+  },
+  {
+   "label": "Monthly Target",
+   "number_card_name": "Monthly Target"
+  },
+  {
+   "label": "Monthly Total Payments",
+   "number_card_name": "Monthly Total Payments"
+  },
+  {
+   "label": "Daily Target",
+   "number_card_name": "Daily Target"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "Salon Admin"
+  }
+ ],
+ "sequence_id": 1.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Monthly Target List",
+   "link_to": "Monthly Target",
+   "stats_filter": "[]",
+   "type": "DocType"
+  }
+ ],
+ "title": "Target Dashboard"
+}

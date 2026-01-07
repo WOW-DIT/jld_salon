@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from salon.appointment_api import get_available_times
 import json
 import math
+import requests
 
 def normalize_saudi_mobile(mobile: str) -> dict:
     mobile = mobile.strip().replace(" ", "").replace("-", "")
@@ -24,7 +25,7 @@ def normalize_saudi_mobile(mobile: str) -> dict:
     }
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(methods=["POST"])
 def webhook():
     def normalize_rating(rating: float) -> float:
         return {
@@ -35,36 +36,132 @@ def webhook():
             5.0: 1.0,
         }[rating]
 
+    def handle_error(err):
+        def halt_broadcasting():
+            broadcasts = frappe.get_list(
+                "WhatsApp Message Broadcast",
+                filters={"sending_status": "Sending", "cancel_requested": 0}
+            )
+            for b in broadcasts:
+                broadcast = frappe.get_doc("WhatsApp Message Broadcast", b.name)
+                broadcast.sending_status = "Failed"
+                broadcast.cancel_requested = 1
+                broadcast.failure_reason = error_title
+                # broadcast.completed_numbers = broadcast.completed_numbers.replace(f"{user_number}\n", "\n")
+                broadcast.save()
+            frappe.db.commit()
+
+
+        error_code = err.get("code")
+        error_title = err.get("title")
+
+        ## Payment error
+        if error_code == 131042:
+            halt_broadcasting()
+
+        # Rate Limit Error
+        elif error_code in [80007, 130429, 131048]:
+            halt_broadcasting()
+
     wa_settings = frappe.get_doc("WhatsApp Settings", "WhatsApp Settings")
     try:
         # raw_body = frappe.request.data
         raw_data = frappe.request.get_data(as_text=True)
         data = json.loads(raw_data)
+        instance_id = data.get("whatsapp_instance_id")
 
-        interactive = data.get("interactive")
-        message_type = interactive.get("type")
-        if message_type == "list_reply":
-            reply = interactive.get("list_reply")
-            reply_id = reply.get("id")
-            reply_title = reply.get("title")
-            reply_description = reply.get("description")
+        note = frappe.new_doc("Note")
+        note.title = "WHATSAPP LOG (55555555555555)"
+        note.type = "External"
+        note.public = 1
+        note.content = str(data)
+        note.insert(ignore_permissions=True)
+        frappe.db.commit()
 
-            review_id = reply_id.split("_")[0]
-            rating = float(reply_id.split("_")[1])
-
-            review = frappe.get_value("Service Review", {"name": review_id, "status": "Pending"})
-            if review:
-                review_doc = frappe.get_doc("Service Review", review_id)
-                review_doc.rating = normalize_rating(rating)
-                review_doc.rating_number = int(rating)
-                review_doc.description = reply_description
-                review_doc.status = "Reviewed"
-                review_doc.save(ignore_permissions=True)
+        whatsapp_number_id = frappe.db.get_value("WhatsApp Number", {"instance_id": instance_id})
+        if not whatsapp_number_id:
+            return
         
-                return {"success": True, "body": data, "review_id": review_doc.name, "rating": normalize_rating(rating)}
-    
+        event = data.get("event")
+        user_number = data.get("user_number")
+        
+        if event == "interactive":
+            interactive = data.get("interactive")
+            message_type = interactive.get("type")
+            if message_type == "list_reply":
+                reply = interactive.get("list_reply")
+                reply_id = reply.get("id")
+                reply_title = reply.get("title")
+                reply_description = reply.get("description")
+
+                review_id = reply_id.split("_")[0]
+                rating = float(reply_id.split("_")[1])
+
+                review = frappe.get_value("Service Review", {"name": review_id, "status": "Pending"})
+                if review:
+                    review_doc = frappe.get_doc("Service Review", review_id)
+                    review_doc.rating = normalize_rating(rating)
+                    review_doc.rating_number = int(rating)
+                    review_doc.description = reply_description
+                    review_doc.status = "Reviewed"
+                    review_doc.save(ignore_permissions=True)
+            
+                    return {"success": True, "body": data, "review_id": review_doc.name, "rating": normalize_rating(rating)}
+
+        elif event == "errors":
+            errors = data.get("errors")
+
+            for err in errors:
+                handle_error(err)
+
     except Exception as e:
+        note = frappe.new_doc("Note")
+        note.title = "WhatsApp ERROR"
+        note.content = str(e)
+        note.public = 1
+        note.insert(ignore_permissions=True)
+        return
+    
         frappe.throw(str(e))
+
+
+@frappe.whitelist(methods=["GET"])
+def get_whatsapp_rate_limit(whatsapp_number_id):
+    wa_settings = frappe.get_doc("WhatsApp Settings", "WhatsApp Settings")
+    wa_number = frappe.get_doc("WhatsApp Number", whatsapp_number_id)
+    instance_id = wa_number.instance_id
+
+    wa_settings = frappe.get_doc("WhatsApp Settings", "WhatsApp Settings")
+    api_base_url = wa_settings.api_url
+    api_key = wa_settings.get_password("api_key")
+
+    url = f"{api_base_url}/whatsapp_integration.whatsapp_api.get_whatsapp_rate_limit"
+    request_body = {
+        "instance_id": instance_id
+    }
+    headers = {
+        "Authorization": f"Basic {api_key}"
+    }
+    response = requests.post(url, headers=headers, json=request_body, timeout=20)
+
+    if response.status_code == 200:
+        data = response.json()
+        status = data.get("status")
+        success = data.get("success")
+        if success:
+            message = data.get("message")
+            rate_limit = message.get("whatsapp_business_manager_messaging_limit")
+            return {
+                "value": int(rate_limit.split("_")[1]),
+                "fieldtype": "Int",
+            }
+        
+        frappe.throw(response.json())
+
+
+@frappe.whitelist()
+def whatsapp_messaging_limit_card():
+    return get_whatsapp_rate_limit("Main Number")
 
 
 @frappe.whitelist(methods=["GET"])
@@ -81,15 +178,24 @@ def check_customer(mobile_number: str):
         )
 
         if customers:
-            frappe.response["customers"] = customers
+            frappe.response.update({
+                "success": True,
+                "customers": customers
+            })
             return
         
         else:
-            frappe.response["message"] = "Customer not registered with this mobile number."
+            frappe.response.update({
+                "success": False,
+                "message": "Customer not registered with this mobile number."
+            })
             return
         
     except Exception as e:
-        frappe.response["message"] = f"Failed to check customer against the database: {e}"
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to get customer: {e}"
+        })
         return
     
 
@@ -104,7 +210,10 @@ def create_customer(first_name: str, middle_name: str, last_name: str, mobile_nu
         )
 
         if customers:
-            frappe.response["message"] = "Customer already registered with this mobile number."
+            frappe.response.update({
+                "success": False,
+                "message": "Customer already registered with this mobile number."
+            })
             return
 
         else:
@@ -114,98 +223,17 @@ def create_customer(first_name: str, middle_name: str, last_name: str, mobile_nu
             customer.customer_type = "Individual"
             customer.insert()
             
-            frappe.response["message"] = "Customer created successfully"
+            frappe.response.update({
+                "success": True,
+                "message": "Customer created successfully"
+            })
             return
         
     except Exception as e:
-        frappe.response["message"] = f"Failed to create customer: {e}"
-        return
-        
-    
-
-@frappe.whitelist(methods=["GET"])
-def get_appointments(customer_id: str, from_date: str, to_date: str):
-    try:
-        appointments = frappe.get_list(
-            "Appointment",
-            filters=[
-                ["Appointment", "customer", "=", customer_id],
-                ["Appointment", "status", "=", "Open"],
-                ["Appointment", "selected_date", ">=", from_date],
-                ["Appointment", "selected_date", "<=", to_date],
-            ],
-            fields=["department", "employee", "scheduled_time", "scheduled_end_time"],
-        )
-        for app in appointments:
-            employee_name = frappe.db.get_value("Employee", app.employee, "employee_name")
-            app.employee = employee_name
-
-        frappe.response["my_appointments"] = appointments
-        return
-    
-    except Exception as e:
-        frappe.response["message"] = f"Failed to fetch appointments: {e}"
-        return
-    
-
-
-@frappe.whitelist(methods=["POST"])
-def create_appointment(
-    department: str,
-    employee: str,
-    selected_date: str,
-    selected_time: str,
-    customer_name: str,
-    customer_mobile_number: str,
-):
-    try:
-        customer_id = frappe.get_value(
-            "Customer",
-            {"customer_name": customer_name, "mobile_no": customer_mobile_number},
-        )
-        if not customer_id:
-            frappe.response["message"] = f"({customer_name}) customer with mobile number ({customer_mobile_number}) is not registered."
-            return
-        
-        date = datetime.strptime(selected_date, "%Y-%m-%d")
-        weekday = date.weekday()
-
-        app_settings = frappe.get_list(
-            "Appointment Setting",
-            filters = {
-                "employee": employee,
-                "department": department,
-                "weekday": str(weekday),
-            },
-            fields=["name", "customers_capacity", "duration", "from", "to"]
-        )
-
-        if not app_settings:
-            frappe.response["message"] = f"The employee is not available on {selected_date} {selected_time}"
-            return
-        
-        duration_seconds = app_settings[0].duration
-        start_datetime = datetime.strptime(f"{selected_date} {selected_time}", "%Y-%m-%d %H:%M:%S")
-        end_datetime = start_datetime + timedelta(seconds=duration_seconds)
-
-        appointment = frappe.new_doc("Appointment")
-        appointment.department = department
-        appointment.employee = employee
-        appointment.selected_date = selected_date
-        appointment.scheduled_time = f"{selected_date} {selected_time}"
-        appointment.scheduled_end_time = end_datetime
-        appointment.customer = customer_id
-        appointment.customer_name = customer_name
-        appointment.customer_phone_number = customer_mobile_number
-        appointment.appointment_with = "Customer"
-        appointment.party = customer_id
-        appointment.insert()
-        
-        frappe.response["message"] = f"New appointment created successfully on {selected_date} {selected_time}"
-        return
-    
-    except Exception as e:
-        frappe.response["message"] = f"Failed to create a new appointment: {e}"
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to create customer: {e}"
+        })
         return
 
 
@@ -224,11 +252,17 @@ def get_departments():
         for dep in departments:
             deps.append(dep.name)
 
-        frappe.response["departments"] = deps
+        frappe.response.update({
+            "success": True,
+            "departments": deps
+        })
         return
     
     except Exception as e:
-        frappe.response["message"] = f"Failed to fetch departments: {e}"
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to fetch departments: {e}"
+        })
         return
 
 
@@ -262,11 +296,17 @@ def get_all_services(language: str="ar"):
             else:
                 service.vat_exclusive_price = "Unspecified"
 
-        frappe.response["services"] = services
+        frappe.response.update({
+            "success": True,
+            "services": services
+        })
         return
     
     except Exception as e:
-        frappe.response["message"] = f"Failed to fetch services: {e}"
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to fetch services: {e}"
+        })
         return
     
 
@@ -302,11 +342,17 @@ def get_services_by_department(department: str, language: str="ar"):
             else:
                 service.vat_exclusive_price = "Unspecified"
 
-        frappe.response["services"] = services
+        frappe.response.update({
+            "success": True,
+            "services": services
+        })
         return
     
     except Exception as e:
-        frappe.response["message"] = f"Failed to fetch services: {e}"
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to fetch services: {e}"
+        })
         return
 
 
@@ -319,11 +365,17 @@ def get_all_employees():
             limit=0,
         )
         
-        frappe.response["employees"] = employees
+        frappe.response.update({
+            "success": True,
+            "employees": employees
+        })
         return
     
     except Exception as e:
-        frappe.response["message"] = f"Failed to fetch employees: {e}"
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to fetch employees: {e}"
+        })
         return
     
 
@@ -337,13 +389,18 @@ def get_employees_by_department(department: str):
         employees = []
         for emp in employees_table:
             employees.append({"ID": emp.employee, "Name": emp.employee_name})
-            
-        
-        frappe.response["employees"] = employees
+                    
+        frappe.response.update({
+            "success": True,
+            "employees": employees
+        })
         return
     
     except Exception as e:
-        frappe.response["message"] = f"Failed to fetch employees: {e}"
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to fetch employees: {e}"
+        })
         return
 
 
@@ -362,7 +419,10 @@ def get_times(date: str, department: str, employee: str):
         )
         if leaves:
             employee_name = frappe.db.get_value("Employee", employee, "employee_name")
-            frappe.response["message"] = f"{employee_name} is not available on {date}"
+            frappe.response.update({
+                "success": True,
+                "message": f"{employee_name} is not available on {date}"
+            })
             return
         
         else:
@@ -374,7 +434,10 @@ def get_times(date: str, department: str, employee: str):
             )["times"]
 
             if not times:
-                frappe.response["message"] = f"no available times on {date}"
+                frappe.response.update({
+                    "success": False,
+                    "message": f"no available times on {date}"
+                })
                 return
             
             av_times = []
@@ -382,9 +445,341 @@ def get_times(date: str, department: str, employee: str):
                 if time.get("available"):
                     av_times.append(time.get("value"))
 
-            frappe.response["available_times"] = av_times
+            frappe.response.update({
+                "success": True,
+                "available_times": av_times
+            })
             return
     
     except Exception as e:
-        frappe.response["message"] = f"Failed to fetch available times: {e}"
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to fetch available times: {e}"
+        })
+        return
+    
+
+
+@frappe.whitelist(methods=["GET"])
+def get_appointments(customer_id: str, from_date: str, to_date: str):
+    try:
+        appointments = frappe.get_list(
+            "Appointment",
+            filters=[
+                ["Appointment", "customer", "=", customer_id],
+                ["Appointment", "status", "=", "Open"],
+                ["Appointment", "selected_date", ">=", from_date],
+                ["Appointment", "selected_date", "<=", to_date],
+            ],
+            fields=["department", "employee", "scheduled_time", "scheduled_end_time"],
+        )
+        for app in appointments:
+            employee_name = frappe.db.get_value("Employee", app.employee, "employee_name")
+            app.employee = employee_name
+
+        frappe.response.update({
+            "success": True,
+            "my_appointments": appointments
+        })
+        return
+    
+    except Exception as e:
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to fetch appointments: {e}"
+        })
+        return
+
+
+@frappe.whitelist(methods=["GET"])
+def get_appointment_details(appointment_id: str):
+    try:
+        if not frappe.db.exists("Appointment", appointment_id):
+            frappe.response.update({
+                "success": False,
+                "message": f"The appointment with id **{appointment_id}** was not found"
+            })
+            return
+
+        appointment = frappe.get_doc("Appointment", appointment_id)
+        employee = frappe.get_doc("Employee", appointment.employee)
+
+        frappe.response.update({
+            "success": True,
+            "appointment_details": {
+                "name": appointment.name,
+                "employee_id": employee.name,
+                "employee_name": employee.employee_name,
+                "date": appointment.selected_date,
+                "start_time": appointment.scheduled_time,
+                "end_time": appointment.scheduled_end_time,
+                "status": appointment.status,
+            }
+        })
+        return
+    
+    except Exception as e:
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to get appointment details: {e}"
+        })
+        return
+
+
+@frappe.whitelist(methods=["POST"])
+def get_payment_link(
+    department: str,
+    employee: str,
+    selected_date: str,
+    selected_time: str,
+    customer_name: str,
+    email: str,
+    customer_mobile_number: str,
+):
+    try:
+        first_name = customer_name.split(" ")[0]
+        last_name = customer_name.split(" ")[1]
+
+        deposit_item = frappe.get_doc("Item", "Customer Deposit - 001")
+        deposit_price = frappe.get_value("Item Price", {"item_code": deposit_item.name}, "price_list_rate")
+
+        whatsapp_settings = frappe.get_doc("WhatsApp Settings", "WhatsApp Settings")
+        api_base_url = whatsapp_settings.api_url
+        api_key = whatsapp_settings.get_password("api_key")
+
+        # whatsapp_number = frappe.get_doc("WhatsApp Number", whatsapp_settings.default_review_number)
+
+        url = f"{api_base_url}/connectly.payment_api.intention"
+
+        headers = {"Authorization": f"Basic {api_key}"}
+        payload = {
+            "total_amount": deposit_price,
+            "items": [
+                {
+                    "name": "Deposit",
+                    "amount": deposit_price,
+                }
+            ],
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+            "phone_number": customer_mobile_number,
+            "notification_url": "https://jeanlouisdavidsa.cloud/api/method/salon.payment_api.payment_webhook",
+            "redirection_url": "https://www.google.com",
+            "extras": {
+                "action": "create_appointment",
+                "department": department,
+                "employee": employee,
+                "selected_date": selected_date,
+                "selected_time": selected_time,
+                "customer_name": customer_name,
+                "mobile_number": customer_mobile_number,
+            },
+        }
+
+        response = requests.post(url, headers=headers, json=payload, timeout=15)
+    
+        if response.status_code == 200:
+            body = response.json()
+            data = body.get("message")
+            success = data.get("success")
+            
+            if success:
+                frappe.response.update({
+                    "success": True,
+                    "payment_url": data.get("url"),
+                })
+                return
+            
+            else:
+                frappe.response.update({
+                    "success": False,
+                    "message": data.get("error"),
+                })
+                return
+            
+        frappe.response.update({
+            "success": False,
+            "message": response.text,
+        })
+        return
+
+    
+    except Exception as e:
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed get payment link: {e}"
+        })
+        return
+    
+
+@frappe.whitelist(methods=["POST"])
+def create_appointment(
+    department: str,
+    employee: str,
+    selected_date: str,
+    selected_time: str,
+    customer_name: str,
+    customer_mobile_number: str,
+):
+    try:
+        customer_id = frappe.get_value(
+            "Customer",
+            {"customer_name": customer_name, "mobile_no": customer_mobile_number},
+        )
+        if not customer_id:
+            frappe.response.update({
+                "success": False,
+                "message": f"({customer_name}) customer with mobile number ({customer_mobile_number}) is not registered."
+            })
+            return
+        
+        date = datetime.strptime(selected_date, "%Y-%m-%d")
+        weekday = date.weekday()
+
+        app_settings = frappe.get_list(
+            "Appointment Setting",
+            filters = {
+                "employee": employee,
+                "department": department,
+                "weekday": str(weekday),
+            },
+            fields=["name", "customers_capacity", "duration", "from", "to"]
+        )
+
+        if not app_settings:
+            frappe.response.update({
+                "success": False,
+                "message": f"The employee is not available on {selected_date} {selected_time}"
+            })
+            return
+        
+        duration_seconds = app_settings[0].duration
+        start_datetime = datetime.strptime(f"{selected_date} {selected_time}", "%Y-%m-%d %H:%M:%S")
+        end_datetime = start_datetime + timedelta(seconds=duration_seconds)
+
+        appointment = frappe.new_doc("Appointment")
+        appointment.department = department
+        appointment.employee = employee
+        appointment.selected_date = selected_date
+        appointment.scheduled_time = f"{selected_date} {selected_time}"
+        appointment.scheduled_end_time = end_datetime
+        appointment.customer = customer_id
+        appointment.customer_name = customer_name
+        appointment.customer_phone_number = customer_mobile_number
+        appointment.appointment_with = "Customer"
+        appointment.party = customer_id
+        appointment.insert()
+
+        frappe.db.commit()
+        frappe.response.update({
+            "success": True,
+            "appointment_id": appointment.name,
+        })
+        return
+    
+    except Exception as e:
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to create a new appointment: {e}"
+        })
+        return
+
+
+
+@frappe.whitelist(methods=["POST"])
+def update_appointment(
+    appointment_id: str,
+    department: str=None,
+    employee: str=None,
+    selected_date: str=None,
+    selected_time: str=None,
+):
+    try:
+        if not frappe.db.exists("Appointment", appointment_id):
+            frappe.response.update({
+                "success": False,
+                "message": f"The appointment with id **{appointment_id}** was not found"
+            })
+            return
+    
+        if selected_date and selected_time:
+            date = datetime.strptime(selected_date, "%Y-%m-%d")
+            weekday = date.weekday()
+
+            appointment_settings = frappe.get_list(
+                "Appointment Setting",
+                filters = {
+                    "employee": employee,
+                    "department": department,
+                    "weekday": str(weekday),
+                },
+                fields=["name", "customers_capacity", "duration", "from", "to"]
+            )
+
+            if not appointment_settings:
+                frappe.response.update({
+                    "success": False,
+                    "message": f"The employee is not available on {selected_date} {selected_time}"
+                })
+                return
+        
+        duration_seconds = appointment_settings[0].duration
+        start_datetime = datetime.strptime(f"{selected_date} {selected_time}", "%Y-%m-%d %H:%M:%S")
+        end_datetime = start_datetime + timedelta(seconds=duration_seconds)
+
+        appointment = frappe.get_doc("Appointment", appointment_id)
+
+        if department:
+            appointment.department = department
+        if employee:
+            appointment.employee = employee
+
+        if selected_date and selected_time:
+            appointment.selected_date = selected_date
+            appointment.scheduled_time = f"{selected_date} {selected_time}"
+            appointment.scheduled_end_time = end_datetime
+
+        appointment.save()
+
+        frappe.response.update({
+            "success": True,
+            "message": f"Appointment **{appointment.name}** updated successfully"
+        })
+        return
+    
+    except Exception as e:
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to create a new appointment: {e}"
+        })
+        return
+
+
+@frappe.whitelist(methods=["POST"])
+def cancel_appointment(appointment_id: str):
+    try:
+        if not frappe.db.exists("Appointment", appointment_id):
+            frappe.response.update({
+                "success": False,
+                "message": f"The appointment with id **{appointment_id}** was not found"
+            })
+            return
+        
+        appointment = frappe.get_doc("Appointment", appointment_id)
+        appointment.status = "Cancelled"
+        appointment.save()
+        frappe.db.commit()
+
+        frappe.response.update({
+            "success": True,
+            "message": f"Appointment **{appointment.name}** was cancelled"
+        })
+        return
+
+    except Exception as e:
+        frappe.response.update({
+            "success": False,
+            "message": f"Failed to cancel appointment: {e}"
+        })
         return

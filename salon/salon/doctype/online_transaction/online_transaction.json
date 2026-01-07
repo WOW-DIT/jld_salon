@@ -1,0 +1,122 @@
+{
+ "actions": [],
+ "autoname": "field:id",
+ "creation": "2026-01-06 10:19:05.755760",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "id",
+  "amount",
+  "is_refunded",
+  "column_break_kkrk",
+  "status",
+  "currency",
+  "payment_section",
+  "type",
+  "column_break_snsj",
+  "sub_type"
+ ],
+ "fields": [
+  {
+   "fieldname": "id",
+   "fieldtype": "Data",
+   "label": "ID",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_kkrk",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Succeeded\nFailed"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Data",
+   "label": "Currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_section",
+   "fieldtype": "Section Break",
+   "label": "Payment"
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_snsj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sub_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Sub Type",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_refunded",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Refunded",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-01-06 12:54:47.664589",
+ "modified_by": "Administrator",
+ "module": "Salon",
+ "name": "Online Transaction",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [
+  {
+   "color": "Green",
+   "title": "Succeeded"
+  },
+  {
+   "color": "Red",
+   "title": "Failed"
+  }
+ ]
+}

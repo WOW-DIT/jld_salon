@@ -268,7 +268,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-12-24 11:55:04.590288",
+ "modified": "2026-01-06 17:27:51.605992",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Call Center",
@@ -285,7 +285,7 @@
    "role": "Call Center Supervisor"
   }
  ],
- "sequence_id": 2.0,
+ "sequence_id": 3.0,
  "shortcuts": [
   {
    "color": "Red",

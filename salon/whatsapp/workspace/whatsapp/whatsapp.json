@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"FZl3c7TacV\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">WhatsApp</span>\",\"col\":12}},{\"id\":\"AJp2LfZqqS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Whatsapp Settings\",\"col\":12}},{\"id\":\"hmD-DCDze2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"WhatsApp Message Broadcast\",\"col\":3}},{\"id\":\"Os9eO4jPU8\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"x3HLhhtBIp\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Master</b></span>\",\"col\":12}},{\"id\":\"XmmbVKSags\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Numbers\",\"col\":4}},{\"id\":\"Gw6XDT2Rlk\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Templates\",\"col\":4}}]",
+ "content": "[{\"id\":\"FZl3c7TacV\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">WhatsApp</span>\",\"col\":12}},{\"id\":\"iy2GWuZdG2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Daily Messaging Limit\",\"col\":4}},{\"id\":\"fPuINgw7Kc\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"AJp2LfZqqS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Whatsapp Settings\",\"col\":12}},{\"id\":\"hmD-DCDze2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"WhatsApp Message Broadcast\",\"col\":4}},{\"id\":\"z01Jdgnpp1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Broadcast Templates\",\"col\":3}},{\"id\":\"Os9eO4jPU8\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"x3HLhhtBIp\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Masters</b></span>\",\"col\":12}},{\"id\":\"XmmbVKSags\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Numbers\",\"col\":4}},{\"id\":\"Gw6XDT2Rlk\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Templates\",\"col\":4}}]",
  "creation": "2025-12-01 15:39:28.267795",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,11 +13,16 @@
  "is_hidden": 0,
  "label": "WhatsApp",
  "links": [],
- "modified": "2025-12-24 11:55:06.212412",
+ "modified": "2026-01-06 17:27:53.118725",
  "modified_by": "Administrator",
  "module": "WhatsApp",
  "name": "WhatsApp",
- "number_cards": [],
+ "number_cards": [
+  {
+   "label": "Daily Messaging Limit",
+   "number_card_name": "WhatsApp Messaging Limit"
+  }
+ ],
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
@@ -34,8 +39,16 @@
   }
  ],
  "roles": [],
- "sequence_id": 38.0,
+ "sequence_id": 40.0,
  "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Broadcast Templates",
+   "link_to": "WhatsApp Message Broadcast Template",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
   {
    "color": "Grey",
    "doc_view": "List",

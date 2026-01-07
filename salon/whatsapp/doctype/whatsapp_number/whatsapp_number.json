@@ -65,8 +65,17 @@
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2025-12-01 15:55:47.054985",
+ "links": [
+  {
+   "link_doctype": "WhatsApp Message Broadcast",
+   "link_fieldname": "whatsapp_number"
+  },
+  {
+   "link_doctype": "WhatsApp Message Broadcast Template",
+   "link_fieldname": "whatsapp_number"
+  }
+ ],
+ "modified": "2025-12-28 14:06:24.628333",
  "modified_by": "Administrator",
  "module": "WhatsApp",
  "name": "WhatsApp Number",

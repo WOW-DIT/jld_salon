@@ -10,12 +10,6 @@ def add_customer_deposit(doc, method=None):
         cust.deposit_balance += doc.paid_amount
         cust.save(ignore_permissions=True)
 
-        # for row in doc.deductions:
-        #     if "Customer Deposits" in row.account:
-        #         deposit_change = row.amount
-        #     cust.deposit_balance += deposit_change
-        #     cust.save(ignore_permissions=True)
-
 
 ###### Invoices (Transactions) ######
 
@@ -27,6 +21,13 @@ def get_advances(doc, method=None):
         doc.save()
 
 ## POS Invoice | Sales Invoice
+### validate
+def fetch_customer(doc, method=None):
+    customer = frappe.db.get_value("Customer", {"mrn": doc.mrn})
+    if customer:
+        doc.customer = customer
+
+
 ### on_submit
 def deduct_deposit_balance(doc, method=None):
     if doc.advances:

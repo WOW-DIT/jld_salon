@@ -461,7 +461,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-12-24 11:55:04.728412",
+ "modified": "2026-01-06 17:27:51.716487",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Storage",
@@ -488,7 +488,7 @@
    "role": "Storage Manager"
   }
  ],
- "sequence_id": 5.0,
+ "sequence_id": 6.0,
  "shortcuts": [
   {
    "color": "Yellow",
@@ -520,7 +520,7 @@
    "format": "{} Available",
    "label": "Item",
    "link_to": "Item",
-   "stats_filter": "[[\"Item\",\"disabled\",\"=\",0,false],[\"Item\",\"item_group\",\"!=\",\"Services\",false]]",
+   "stats_filter": "[[\"Item\",\"disabled\",\"=\",0,false],[\"Item\",\"item_group\",\"=\",\"Consumable\",false]]",
    "type": "DocType"
   },
   {

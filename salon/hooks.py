@@ -151,7 +151,8 @@ doc_events = {
         "on_submit": "salon.events.deduct_deposit_balance",
     },
     "Sales Invoice": {
-        "on_submit": "salon.events.deduct_deposit_balance"
+        "on_submit": "salon.events.deduct_deposit_balance",
+        "before_insert": "salon.events.fetch_customer",
     },
     "Appointment": {
         "validate": "salon.events.validate_availability"

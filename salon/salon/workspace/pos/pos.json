@@ -209,7 +209,7 @@
    "type": "Link"
   }
  ],
- "modified": "2025-12-24 11:55:04.686755",
+ "modified": "2026-01-06 17:27:51.681813",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "POS",
@@ -223,7 +223,7 @@
    "role": "Cashier"
   }
  ],
- "sequence_id": 4.0,
+ "sequence_id": 5.0,
  "shortcuts": [
   {
    "color": "Red",

@@ -5,14 +5,33 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "broadcast_template",
+  "section_break_gcwz",
   "whatsapp_number",
+  "sending_status",
+  "failure_reason",
+  "column_break_xiwy",
+  "numbers_source",
+  "cancel_requested",
+  "numbers_section",
   "numbers",
+  "customers_numbers",
+  "file",
+  "column_break_wskx",
+  "filter_by_group",
+  "customer_group",
+  "get_customers_numbers",
+  "download_excel_template",
+  "section_break_knum",
   "message_type",
   "text",
   "template",
   "components",
   "reference_id",
-  "amended_from"
+  "amended_from",
+  "section_break_darp",
+  "current_number_index",
+  "completed_numbers"
  ],
  "fields": [
   {
@@ -20,23 +39,24 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "WhatsApp Number",
-   "options": "WhatsApp Number",
-   "reqd": 1
+   "mandatory_depends_on": "eval: !doc.broadcast_template",
+   "options": "WhatsApp Number"
   },
   {
+   "depends_on": "eval: doc.numbers_source === \"Manually\"",
    "fieldname": "numbers",
    "fieldtype": "Table",
    "label": "Numbers",
-   "options": "WhatsApp Numbers Table",
-   "reqd": 1
+   "mandatory_depends_on": "eval: doc.numbers_source === \"Manually\"",
+   "options": "WhatsApp Numbers Table"
   },
   {
    "fieldname": "message_type",
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Message Type",
-   "options": "\ntext\ntemplate\nlocation",
-   "reqd": 1
+   "mandatory_depends_on": "eval: !doc.broadcast_template",
+   "options": "\ntext\ntemplate"
   },
   {
    "depends_on": "eval: doc.message_type === \"text\"",
@@ -63,7 +83,8 @@
   {
    "fieldname": "reference_id",
    "fieldtype": "Data",
-   "label": "Reference ID"
+   "label": "Reference ID",
+   "read_only": 1
   },
   {
    "fieldname": "amended_from",
@@ -74,13 +95,127 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "column_break_xiwy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "numbers_source",
+   "fieldtype": "Select",
+   "label": "Numbers Source",
+   "mandatory_depends_on": "eval: !doc.broadcast_template",
+   "options": "\nManually\nCustomers\nExcel/CSV"
+  },
+  {
+   "fieldname": "section_break_knum",
+   "fieldtype": "Section Break",
+   "label": "Message Details"
+  },
+  {
+   "fieldname": "numbers_section",
+   "fieldtype": "Section Break",
+   "label": "Numbers List"
+  },
+  {
+   "fieldname": "column_break_wskx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval: doc.numbers_source === \"Customers\"",
+   "fieldname": "get_customers_numbers",
+   "fieldtype": "Button",
+   "label": "Get Customers Numbers"
+  },
+  {
+   "depends_on": "eval: doc.numbers_source === \"Excel/CSV\" && !doc.broadcast_template",
+   "fieldname": "file",
+   "fieldtype": "Attach",
+   "label": "File",
+   "mandatory_depends_on": "eval: doc.numbers_source === \"Excel/CSV\""
+  },
+  {
+   "depends_on": "eval: doc.numbers_source === \"Excel/CSV\"",
+   "fieldname": "download_excel_template",
+   "fieldtype": "Button",
+   "label": "Download Excel Template"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval: doc.numbers_source === \"Customers\"",
+   "fieldname": "filter_by_group",
+   "fieldtype": "Check",
+   "label": "Filter By Group"
+  },
+  {
+   "depends_on": "eval: doc.numbers_source === \"Customers\" && doc.filter_by_group === 1",
+   "fieldname": "customer_group",
+   "fieldtype": "Link",
+   "label": "Customer Group",
+   "mandatory_depends_on": "eval: doc.numbers_source === \"Customers\" && doc.filter_by_group === 1",
+   "options": "Customer Group"
+  },
+  {
+   "depends_on": "eval: doc.numbers_source === \"Customers\"",
+   "fieldname": "customers_numbers",
+   "fieldtype": "Code",
+   "label": "Numbers",
+   "mandatory_depends_on": "eval: doc.numbers_source === \"Customers\""
+  },
+  {
+   "default": "Pending",
+   "fieldname": "sending_status",
+   "fieldtype": "Select",
+   "label": "Sending Status",
+   "options": "Pending\nSending\nPartially Sent\nSent\nFailed"
+  },
+  {
+   "fieldname": "section_break_darp",
+   "fieldtype": "Section Break",
+   "label": "Proccess Details"
+  },
+  {
+   "fieldname": "completed_numbers",
+   "fieldtype": "Code",
+   "label": "Completed Numbers"
+  },
+  {
+   "default": "0",
+   "fieldname": "current_number_index",
+   "fieldtype": "Int",
+   "label": "Current Number Index",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "cancel_requested",
+   "fieldtype": "Check",
+   "label": "Cancel Requested",
+   "read_only": 1
+  },
+  {
+   "fieldname": "failure_reason",
+   "fieldtype": "Text",
+   "label": "Failure Reason",
+   "read_only": 1
+  },
+  {
+   "fieldname": "broadcast_template",
+   "fieldtype": "Link",
+   "label": "Broadcast Template",
+   "options": "WhatsApp Message Broadcast Template"
+  },
+  {
+   "fieldname": "section_break_gcwz",
+   "fieldtype": "Section Break",
+   "read_only_depends_on": "eval: doc.broadcast_template"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
- "is_submittable": 1,
  "links": [],
- "modified": "2025-12-07 11:30:39.177093",
+ "modified": "2025-12-28 13:55:02.588998",
  "modified_by": "Administrator",
  "module": "WhatsApp",
  "name": "WhatsApp Message Broadcast",
