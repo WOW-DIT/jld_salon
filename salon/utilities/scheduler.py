@@ -139,7 +139,7 @@ def send_appointment_reminder():
                         ap.customer_name,
                         customer_number,
                         ap.scheduled_time,
-                        s.whatsapp_template,
+                        whatsapp_settings.default_appointment_reminder_template,
                     )
 
                 if s.channel == "SMS" or s.channel == "WhatsApp & SMS":

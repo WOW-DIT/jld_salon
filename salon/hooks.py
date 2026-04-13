@@ -27,6 +27,7 @@ app_license = "mit"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/salon/css/salon.css"
 # app_include_js = "/assets/salon/js/salon.js"
+app_include_js = ["/assets/salon/js/notification_sound.js"]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/salon/css/salon.css"
@@ -155,10 +156,14 @@ doc_events = {
         "before_insert": "salon.events.fetch_customer",
     },
     "Appointment": {
-        "validate": "salon.events.validate_availability"
+        "validate": "salon.events.validate_availability",
+        "after_insert": "salon.events.send_appointment_notifications",
     },
     "Customer Cart": {
-        "on_submit": "salon.events.send_review_messages"
+        "on_submit": "salon.events.send_review_messages",
+	},
+	"Customer": {
+		"before_insert": "salon.events.assign_mrn",
 	}
 }
 

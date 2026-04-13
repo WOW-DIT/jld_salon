@@ -1,5 +1,53 @@
 import frappe
 from datetime import datetime, timedelta, time
+import json
+
+# from frappe.desk.calendar import get_events as _get_base_events
+
+@frappe.whitelist()
+def get_appointment_events(doctype, start, end, field_map, filters=None, fields=None):
+    field_map_dict = frappe._dict(json.loads(field_map))
+    fields = frappe.parse_json(fields)
+
+    doc_meta = frappe.get_meta(doctype)
+    for d in doc_meta.fields:
+        if d.fieldtype == "Color":
+            field_map_dict.update({"color": d.fieldname})
+
+    # Ensure employee is always fetched
+    extra_fields = ["customer", "customer_name", "customer_phone_number", "employee", "department", "status", "color"]
+
+    filters = json.loads(filters) if filters else []
+
+    start_date = "ifnull({}, '0001-01-01 00:00:00')".format(field_map_dict.start)
+    end_date = "ifnull({}, '2199-12-31 00:00:00')".format(field_map_dict.end)
+
+    filters += [
+        [doctype, start_date, "<=", end],
+        [doctype, end_date, ">=", start],
+    ]
+
+    fetch_fields = list({
+        field_map_dict.start,
+        field_map_dict.end,
+        field_map_dict.title,  # customer
+        "name",
+        *extra_fields
+    })
+
+    events = frappe.get_list(doctype, fields=fetch_fields, filters=filters)
+
+    # Merge customer + employee into a single title string for the calendar
+    for event in events:
+        mrn = frappe.get_value("Customer", event.get("customer"), "mrn") if event.get("customer") else ""
+        customer_name = event.get("customer_name") or ""
+        customer_phone_number = event.get("customer_phone_number") or ""
+        employee = frappe.get_value("Employee", event.get("employee"), "employee_name") if event.get("employee") else ""
+        department = event.get("department")
+        event["title"] = f"{mrn if mrn else ""} {customer_name}\n{department}\n{customer_phone_number}" if employee else customer
+
+    return events
+
 
 @frappe.whitelist()
 def update_schedulers():

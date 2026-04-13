@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"FZl3c7TacV\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">WhatsApp</span>\",\"col\":12}},{\"id\":\"iy2GWuZdG2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Daily Messaging Limit\",\"col\":4}},{\"id\":\"fPuINgw7Kc\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"AJp2LfZqqS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Whatsapp Settings\",\"col\":12}},{\"id\":\"hmD-DCDze2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"WhatsApp Message Broadcast\",\"col\":4}},{\"id\":\"z01Jdgnpp1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Broadcast Templates\",\"col\":3}},{\"id\":\"Os9eO4jPU8\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"x3HLhhtBIp\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Masters</b></span>\",\"col\":12}},{\"id\":\"XmmbVKSags\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Numbers\",\"col\":4}},{\"id\":\"Gw6XDT2Rlk\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Templates\",\"col\":4}}]",
+ "content": "[{\"id\":\"FZl3c7TacV\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">WhatsApp</span>\",\"col\":12}},{\"id\":\"iy2GWuZdG2\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Daily Messaging Limit\",\"col\":4}},{\"id\":\"fPuINgw7Kc\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"_tlPlKFJC7\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"WhatsApp Manager\",\"col\":4}},{\"id\":\"AJp2LfZqqS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Whatsapp Settings\",\"col\":8}},{\"id\":\"hmD-DCDze2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"WhatsApp Message Broadcast\",\"col\":4}},{\"id\":\"z01Jdgnpp1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Broadcast Templates\",\"col\":3}},{\"id\":\"Os9eO4jPU8\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"x3HLhhtBIp\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Masters</b></span>\",\"col\":12}},{\"id\":\"XmmbVKSags\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Numbers\",\"col\":4}},{\"id\":\"Gw6XDT2Rlk\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"WhatsApp Templates\",\"col\":4}}]",
  "creation": "2025-12-01 15:39:28.267795",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "WhatsApp",
  "links": [],
- "modified": "2026-01-06 17:27:53.118725",
+ "modified": "2026-03-30 12:51:39.319771",
  "modified_by": "Administrator",
  "module": "WhatsApp",
  "name": "WhatsApp",
@@ -39,7 +39,7 @@
   }
  ],
  "roles": [],
- "sequence_id": 40.0,
+ "sequence_id": 42.0,
  "shortcuts": [
   {
    "color": "Grey",
@@ -63,6 +63,13 @@
    "link_to": "WhatsApp Message Broadcast",
    "stats_filter": "[]",
    "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "WhatsApp Manager",
+   "type": "URL",
+   "url": "https://connectly.wowdigital.sa/app/control-panel"
   }
  ],
  "title": "WhatsApp"

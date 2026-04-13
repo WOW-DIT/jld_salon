@@ -136,6 +136,9 @@ def payment_webhook():
 						whatsapp_response = send_whatsapp_receipt(
 							customer_name,
 							mobile_number,
+							department,
+							selected_date,
+							selected_time,
 							appointment_id,
 							online_receipt,
 						)
@@ -336,13 +339,21 @@ def create_appointment(
 		frappe.set_user(original_user)
 
 
-def send_whatsapp_receipt(customer_name, customer_number, appointment_id, payment_file_link):
+def send_whatsapp_receipt(
+	customer_name: str,
+	customer_number: str,
+	department: str,
+	appointment_id: str,
+	appointment_date: str,
+	appointment_time: str,
+	payment_file_link: str,
+):
 	try:
 		whatsapp_settings = frappe.get_doc("WhatsApp Settings", "WhatsApp Settings")
 		api_base_url = whatsapp_settings.api_url
 		api_key = whatsapp_settings.get_password("api_key")
 
-		template_name = "invoice_test_dynamic_link2"
+		template_name = whatsapp_settings.default_appointment_template
 		template = frappe.get_doc("WhatsApp Template", template_name)
 		whatsapp_number = frappe.get_doc("WhatsApp Number", template.whatsapp_number)
 
@@ -362,12 +373,24 @@ def send_whatsapp_receipt(customer_name, customer_number, appointment_id, paymen
 					"params": [
 						{
 							"type": "text",
-							"text": f"*{customer_name}*"
+							"text": customer_name
 						},
 						{
 							"type": "text",
-							"text": f"*{appointment_id}*"
-						}
+							"text": department
+						},
+						{
+							"type": "text",
+							"text": appointment_date
+						},
+						{
+							"type": "text",
+							"text": appointment_time
+						},
+						{
+							"type": "text",
+							"text": appointment_id
+						},
 					]
 				},
 				{
@@ -406,57 +429,3 @@ def send_whatsapp_receipt(customer_name, customer_number, appointment_id, paymen
 			"success": False,
 			"error": str(e)
 		}
-
-# def send_whatsapp_receipt(customer_name, mobile_number, appointment_id, payment_file_link):
-# 	try:
-# 		whatsapp_settings = frappe.get_doc("WhatsApp Settings", "WhatsApp Settings")
-# 		api_base_url = whatsapp_settings.api_url
-# 		api_key = whatsapp_settings.get_password("api_key")
-
-# 		whatsapp_number = frappe.get_doc("WhatsApp Number", whatsapp_settings.default_review_number)
-
-# 		url = f"{api_base_url}/whatsapp_integration.whatsapp_api.send_whatsapp_template_standalone"
-# 		headers = {"Authorization": f"Basic {api_key}"}
-
-# 		# customer = frappe.get_doc("Customer", self.customer)
-
-# 		instance_id = whatsapp_number.instance_id
-# 		template = frappe.get_doc("WhatsApp Template", "invoice_test_dynamic_link2")
-# 		template.print
-# 		template_name = template.template_name
-# 		language_code = template.template_language
-
-# 		components = [
-# 			{
-# 				'type': 'body',
-# 				'parameters': [
-# 					{'type': "text", "text": customer_name},
-# 					{'type': "text", "text": appointment_id}
-# 				]
-# 			},
-# 			{
-# 				"type": "button",
-# 				"sub_type": "url",
-# 				"index": "0",
-# 				"parameters": [
-# 					{"type": "text", "text": payment_file_link},
-# 				],
-# 			},
-# 		]
-# 		payload = {
-# 			"instance_id": instance_id,
-# 			"to_number": mobile_number,
-# 			"template_name": template_name,
-# 			"language_code": language_code,
-# 			"components": components,
-# 		}
-
-# 		response = requests.post(url, headers=headers, json=payload, timeout=20)
-
-# 		return response.json()
-
-# 	except Exception as e:
-# 		return {
-# 			"success": False,
-# 			"error": str(e)
-# 		}

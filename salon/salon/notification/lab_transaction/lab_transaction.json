@@ -1,0 +1,29 @@
+{
+ "attach_files": "",
+ "attach_print": 0,
+ "channel": "System Notification",
+ "creation": "2026-03-30 12:00:51.313863",
+ "days_in_advance": 0,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Lab Transaction",
+ "enabled": 1,
+ "event": "New",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "Add your message here",
+ "message_type": "Markdown",
+ "modified": "2026-03-30 12:00:51.313863",
+ "modified_by": "Administrator",
+ "module": "Salon",
+ "name": "Lab Transaction",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_role": "Lab"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "{{ doc.customer }} has arrived, please be prepared."
+}

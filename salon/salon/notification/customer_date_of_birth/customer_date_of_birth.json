@@ -1,0 +1,34 @@
+{
+ "attach_files": "",
+ "attach_print": 0,
+ "channel": "System Notification",
+ "condition": "",
+ "creation": "2026-03-30 10:32:48.475343",
+ "date_changed": "date_of_birth",
+ "days_in_advance": 1,
+ "docstatus": 0,
+ "doctype": "Notification",
+ "document_type": "Customer",
+ "enabled": 1,
+ "event": "Days Before",
+ "idx": 0,
+ "is_standard": 1,
+ "message": "<p>Add your message here</p>\n",
+ "message_type": "Markdown",
+ "modified": "2026-03-30 10:32:48.475343",
+ "modified_by": "Administrator",
+ "module": "Salon",
+ "name": "Customer Date of Birth",
+ "owner": "Administrator",
+ "recipients": [
+  {
+   "receiver_by_role": "Call Center"
+  },
+  {
+   "receiver_by_role": "Receptionist"
+  }
+ ],
+ "send_system_notification": 0,
+ "send_to_all_assignees": 0,
+ "subject": "{{ doc.customer_name}} birthday is tomorrow."
+}

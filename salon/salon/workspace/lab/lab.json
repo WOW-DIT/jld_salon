@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"sdCdgKW_B3\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Lab</span>\",\"col\":12}},{\"id\":\"MtYeQYoCdB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer's Lab\",\"col\":3}}]",
+ "content": "[{\"id\":\"sdCdgKW_B3\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Lab</span>\",\"col\":12}},{\"id\":\"MtYeQYoCdB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer's Lab\",\"col\":3}},{\"id\":\"VJK-y_3ua7\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"o-6GFX0flH\",\"type\":\"quick_list\",\"data\":{\"quick_list_name\":\"Lab Transactions\",\"col\":12}}]",
  "creation": "2025-12-24 11:09:11.788151",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "Lab",
  "links": [],
- "modified": "2026-01-06 17:27:51.768340",
+ "modified": "2026-03-30 12:03:05.399357",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Lab",
@@ -21,7 +21,13 @@
  "owner": "Administrator",
  "parent_page": "",
  "public": 1,
- "quick_lists": [],
+ "quick_lists": [
+  {
+   "document_type": "Lab Transaction",
+   "label": "Lab Transactions",
+   "quick_list_filter": "[[\"Lab Transaction\",\"status\",\"=\",\"Open\",false]]"
+  }
+ ],
  "roles": [
   {
    "role": "Lab"
@@ -30,7 +36,7 @@
    "role": "Salon Admin"
   },
   {
-   "role": "Call Center"
+   "role": "Call Center Supervisor"
   }
  ],
  "sequence_id": 7.0,

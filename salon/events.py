@@ -1,6 +1,6 @@
 import frappe
 from datetime import datetime
-
+from salon.whatsapp.utils import send_whatsapp_template
 
 ###### Customer Deposit ######
 ### on_submit
@@ -10,6 +10,29 @@ def add_customer_deposit(doc, method=None):
         cust.deposit_balance += doc.paid_amount
         cust.save(ignore_permissions=True)
 
+        if doc.send_confirmation_message:
+            whatsapp_settings = frappe.get_doc("WhatsApp Settings")
+            send_whatsapp_template(
+                customer_number=cust.mobile_no,
+                template_name=whatsapp_settings.default_deposit_confirmation_template,
+                components=[
+                    {
+                        "section_name": "body",
+                        "params": [
+                            {
+                                "type": "text",
+                                "text": cust.customer_name
+                            },
+                            {
+                                "type": "text",
+                                "text": doc.paid_amount
+                            },
+                        ]
+                    },
+                ]
+            )
+
+        frappe.db.commit()
 
 ###### Invoices (Transactions) ######
 
@@ -142,8 +165,84 @@ def validate_availability(doc, method=None):
             title="Slot Not Available",
         )
 
+    update_status(doc, method)
+
     return True
 
+
+def send_appointment_notifications(doc, method=None):
+    if doc.send_confirmation_message == 0:
+        return
+
+    customer = frappe.get_doc("Customer", doc.party)
+    whatsapp_settings = frappe.get_doc("WhatsApp Settings")
+
+    if isinstance(doc.scheduled_time, datetime):
+        appointment_datetime = doc.scheduled_time
+    else:
+        appointment_datetime = datetime.strptime(doc.scheduled_time, "%Y-%m-%d %H:%M:%S")
+
+    date = appointment_datetime.strftime("%Y-%m-%d")
+    time = appointment_datetime.strftime("%H:%M")
+
+    send_whatsapp_template(
+        customer_number = customer.mobile_no,
+        template_name = whatsapp_settings.default_appointment_template,
+        components=[
+            {
+                "section_name": "body",
+                "params": [
+                    {
+                        "type": "text",
+                        "text": customer.customer_name
+                    },
+                    {
+                        "type": "text",
+                        "text": date
+                    },
+                    {
+                        "type": "text",
+                        "text": time
+                    },
+                ]
+            },
+        ]
+    )
+
+def update_status(doc, method=None):
+    if doc.workflow_state == "Attended":
+        doc.status = "Closed"
+
+        if not frappe.db.exists("Customer Cart", {"customer": doc.party, "docstatus": 0}):
+            cart = frappe.new_doc("Customer Cart")
+            cart.customer = doc.party
+            cart.insert(ignore_permissions=True)
+
+        if not frappe.db.exists("Lab Transaction", {"appointment": doc.name}):
+            cart = frappe.new_doc("Lab Transaction")
+            cart.appointment = doc.name
+            cart.insert(ignore_permissions=True)
+
+        frappe.db.commit()
+            
+    elif doc.workflow_state == "Cancelled":
+        doc.status = "Cancelled"
+
+    if doc.status == "Open":
+        doc.color = "#ffa3a3"
+
+    elif doc.status == "Closed":
+        doc.color = "#aeff9f"
+
+    elif doc.status == "Cancelled":
+        doc.color = "#d4d4d4"
+
+    elif doc.status == "Unverified":
+        doc.color = "#fff09c"
+
+    elif doc.status == "Waiting":
+        doc.color = "#aaebff"
+        
 
 def send_review_messages(doc, method=None):
     if not doc.invoice:
@@ -155,3 +254,10 @@ def send_review_messages(doc, method=None):
         review.service = service.service
         review.employee = service.employee
         review.insert(ignore_permissions=True)
+
+##### Customer
+def assign_mrn(doc, method=None):
+    if not doc.mrn:
+        max_mrn = frappe.db.sql("SELECT MAX(CAST(mrn AS UNSIGNED)) FROM `tabCustomer`")[0][0] or 0
+        doc.mrn = str(int(max_mrn) + 1)
+    # doc.save(ignore_permissions=True)
