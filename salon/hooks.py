@@ -157,7 +157,8 @@ doc_events = {
     },
     "Appointment": {
         "validate": "salon.events.validate_availability",
-        "after_insert": "salon.events.send_appointment_notifications",
+        "after_insert": "salon.events.after_inserting_appointment",
+        # "after_insert": "salon.events.send_appointment_notifications",
     },
     "Customer Cart": {
         "on_submit": "salon.events.send_review_messages",

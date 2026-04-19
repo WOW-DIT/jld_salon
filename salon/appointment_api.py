@@ -15,7 +15,7 @@ def get_appointment_events(doctype, start, end, field_map, filters=None, fields=
             field_map_dict.update({"color": d.fieldname})
 
     # Ensure employee is always fetched
-    extra_fields = ["customer", "customer_name", "customer_phone_number", "employee", "department", "status", "color"]
+    extra_fields = ["customer", "customer_name", "customer_phone_number", "employee", "service", "status", "color"]
 
     filters = json.loads(filters) if filters else []
 
@@ -43,8 +43,8 @@ def get_appointment_events(doctype, start, end, field_map, filters=None, fields=
         customer_name = event.get("customer_name") or ""
         customer_phone_number = event.get("customer_phone_number") or ""
         employee = frappe.get_value("Employee", event.get("employee"), "employee_name") if event.get("employee") else ""
-        department = event.get("department")
-        event["title"] = f"{mrn if mrn else ""} {customer_name}\n{department}\n{customer_phone_number}" if employee else customer
+        service = frappe.get_value("Item", event.get("service"), "item_name")
+        event["title"] = f"{mrn if mrn else ""} {customer_name}\n{service}\n{customer_phone_number}" if employee else customer_name
 
     return events
 
@@ -67,8 +67,13 @@ def update_schedulers():
     # sync_jobs()
 
 @frappe.whitelist()
-def get_available_times(current_appointment_id: str, date: str, department: str, employee: str):
-
+def get_available_times(
+    current_appointment_id: str,
+    date: str,
+    service_id: str,
+    employee: str,
+    now: str=None,
+):
     def parse_time_field(time_value):
         """Converts a time string or timedelta object into a time object."""
         if isinstance(time_value, str):
@@ -86,7 +91,20 @@ def get_available_times(current_appointment_id: str, date: str, department: str,
             return time_value
         else:
             raise TypeError(f"Unsupported time type: {type(time_value)}")
-        
+    
+    def check_employee_leaves():
+        leaves = frappe.get_all(
+            "Leave Application",
+            filters={
+                "employee": employee,
+                "status": "Approved",
+                "from_date": ["<=", date],
+                "to_date": [">=", date],
+            }
+        )
+        return leaves
+            # frappe.throw(f"The employee is not available on {date}.")
+
     def get_concurrent_guests(employee: str, check_datetime: datetime):
         """Calculates the number of guests already booked concurrently with the proposed slot."""
         
@@ -118,25 +136,62 @@ def get_available_times(current_appointment_id: str, date: str, department: str,
 
     weekday = date_obj.weekday()
 
-
+    employee_leaves = check_employee_leaves()
+    if employee_leaves:
+        return {"times": [], "duration": 0}
+    
     ## Get employee shift settings
-    filters = {
-        "employee": employee,
-        "department": department,
-        "weekday": str(weekday),
-    }
+    # filters = {
+    #     "employee": employee,
+    #     "department": department,
+    #     "weekday": str(weekday),
+    # }
+    # appointment_settings = frappe.get_all(
+    #     "Appointment Setting",
+    #     filters=filters,
+    #     fields=["name", "customers_capacity", "duration", "from", "to"]
+    # )
+    service_duration = frappe.get_value("Item", service_id, "service_duration")
     appointment_settings = frappe.get_all(
-        "Appointment Setting",
-        filters=filters,
-        fields=["name", "customers_capacity", "duration", "from", "to"]
+        "Service Employee",
+        filters={
+            "parent": service_id,
+            "employee": employee,
+        },
+        fields=["name", "customers_capacity"]
     )
 
     if not appointment_settings:
         return {"times": []}
     
+    shift_assignment = frappe.get_value(
+        "Shift Assignment",
+        {
+            "employee": employee,
+            "status": "Active",
+            "docstatus": 1,
+            "start_date": ["<=", date],
+            "end_date": [">=", date],
+            "weekday": int(weekday),
+        },
+        ["name","shift_type"],
+        as_dict=True,
+    )
+    if not shift_assignment:
+        return {"times": []}
+        
+    shift_type = frappe.get_value(
+        "Shift Type",
+        shift_assignment.shift_type,
+        ["name", "start_time", "end_time"],
+        as_dict=True
+    )
+    
     setting = appointment_settings[0]
+    setting["from"] = shift_type.start_time
+    setting["to"] = shift_type.end_time
 
-    duration_seconds = int(setting.get("duration", 1800))
+    duration_seconds = int(service_duration) if service_duration else 1800
     customers_capacity = int(setting.get("customers_capacity"))
 
 
@@ -147,7 +202,6 @@ def get_available_times(current_appointment_id: str, date: str, department: str,
     except ValueError:
         return {"error": "Invalid time format in Appointment Setting."}
     
-
     # Combine the date object with the shift times
     start_datetime = date_obj.replace(
         hour=start_time_obj.hour, 
@@ -166,9 +220,21 @@ def get_available_times(current_appointment_id: str, date: str, department: str,
     available_times = []
     current_time = start_datetime
 
+    now_datetime = None
+    if now:
+        try:
+            now_datetime = datetime.strptime(now, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            now_datetime = None
+
     
     # Loop through the time range, stepping by the appointment duration
     while current_time < end_datetime:
+        if now_datetime and date_obj.date() == now_datetime.date():
+            if current_time <= now_datetime:
+                current_time += step
+                continue
+
         slot_end_time = current_time + step
         
         if slot_end_time > end_datetime:
@@ -193,6 +259,20 @@ def get_available_times(current_appointment_id: str, date: str, department: str,
         current_time += step
         
     return {"times": available_times, "duration": duration_seconds}
+
+
+@frappe.whitelist()
+def get_service_employees(service_id: str):
+    employees = frappe.get_all(
+        "Service Employee",
+        filters={"parent": service_id},
+        fields=["employee"],
+    )
+    emp_names = []
+    for emp in employees:
+        emp_names.append(emp.employee)
+
+    return emp_names
 
 
 @frappe.whitelist()
@@ -246,3 +326,28 @@ def set_package_appointments(
         filters=filters,
         fields=["name", "customers_capacity", "duration", "from", "to"]
     )
+
+import frappe
+
+
+@frappe.whitelist()
+def get_appointments_on_date(customer, selected_date, exclude_name=None):
+    filters = {
+        "customer": customer,
+        "selected_date": selected_date,
+    }
+    if exclude_name:
+        filters["name"] = ("!=", exclude_name)
+
+    apps = frappe.get_all(
+        "Appointment",
+        filters=filters,
+        fields=["name", "service", "employee", "scheduled_time", "scheduled_end_time", "status", "color"],
+        order_by="scheduled_time asc",
+    )
+
+    for app in apps:
+        app.service_name = frappe.get_value("Item", app.service, "item_name")
+
+    return apps
+

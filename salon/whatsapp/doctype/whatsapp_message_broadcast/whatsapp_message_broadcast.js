@@ -52,7 +52,7 @@ frappe.ui.form.on("WhatsApp Message Broadcast", {
             }
         }
 	},
-    get_customers_numbers(frm) {
+    load_customers_numbers(frm) {
         getCustomersNumbers(frm);
     },
     download_excel_template(frm) {
@@ -69,7 +69,7 @@ function getCustomersNumbers(frm) {
     };
 
     frappe.call({
-        method: "salon.whatsapp.doctype.whatsapp_message_broadcast.whatsapp_message_broadcast.get_customers_numbers",
+        method: "salon.whatsapp.doctype.whatsapp_message_broadcast.whatsapp_message_broadcast.load_customers_numbers",
         args: args,
         freeze: true,
         freeze_message: __("Fetching Numbers..."),
@@ -89,7 +89,6 @@ function sendMessage(frm) {
             docname: frm.doc.name,
         },
         callback: function(res) {
-            console.log(res)
             frm.refresh();
             // if(res && res.message) {
             //     const numbers = res.message;
@@ -105,7 +104,6 @@ function cancelSending(frm) {
         method: "salon.whatsapp.doctype.whatsapp_message_broadcast.whatsapp_message_broadcast.cancel_broadcast",
         args: { docname: frm.doc.name },
         callback: function(res) {
-            console.log(res)
             frm.refresh();
         }
     });

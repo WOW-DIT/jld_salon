@@ -20,7 +20,7 @@
   "column_break_wskx",
   "filter_by_group",
   "customer_group",
-  "get_customers_numbers",
+  "load_customers_numbers",
   "download_excel_template",
   "section_break_knum",
   "message_type",
@@ -122,12 +122,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "eval: doc.numbers_source === \"Customers\"",
-   "fieldname": "get_customers_numbers",
-   "fieldtype": "Button",
-   "label": "Get Customers Numbers"
-  },
-  {
    "depends_on": "eval: doc.numbers_source === \"Excel/CSV\" && !doc.broadcast_template",
    "fieldname": "file",
    "fieldtype": "Attach",
@@ -210,12 +204,18 @@
    "fieldname": "section_break_gcwz",
    "fieldtype": "Section Break",
    "read_only_depends_on": "eval: doc.broadcast_template"
+  },
+  {
+   "depends_on": "eval: doc.numbers_source === \"Customers\"",
+   "fieldname": "load_customers_numbers",
+   "fieldtype": "Button",
+   "label": "Load Customers Numbers"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-12-28 13:55:02.588998",
+ "modified": "2026-04-16 12:13:50.332098",
  "modified_by": "Administrator",
  "module": "WhatsApp",
  "name": "WhatsApp Message Broadcast",

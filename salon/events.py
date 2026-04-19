@@ -127,25 +127,33 @@ def validate_availability(doc, method=None):
         
         start_date = datetime(year, month, day, hour, minute, second)
     
-    
-    weekday = start_date.weekday()
-    filters = {
-        "department": doc.department,
-        "employee": doc.employee,
-        "weekday": str(weekday),
-    }
-    setting = frappe.get_all(
-        "Appointment Setting",
-        filters=filters,
-        fields=["name", "customers_capacity", "duration", "from", "to"]
+    # weekday = start_date.weekday()
+    # filters = {
+    #     "department": doc.department,
+    #     "employee": doc.employee,
+    #     "weekday": str(weekday),
+    # }
+    # setting = frappe.get_all(
+    #     "Appointment Setting",
+    #     filters=filters,
+    #     fields=["name", "customers_capacity", "duration", "from", "to"]
+    # )
+
+    appointment_settings = frappe.get_all(
+        "Service Employee",
+        filters={
+            "parent": doc.service,
+            "employee": doc.employee,
+        },
+        fields=["name", "customers_capacity"]
     )
 
-    if not setting:
+    if not appointment_settings:
         frappe.throw(
             "No appointment settings found for this employee on the selected day."
         )
 
-    capacity = int(setting[0].customers_capacity or 1)
+    capacity = int(appointment_settings[0].customers_capacity or 1)
 
     concurrent_count  = get_concurrent_guests(
         doc.employee,
@@ -169,6 +177,9 @@ def validate_availability(doc, method=None):
 
     return True
 
+
+def after_inserting_appointment(doc, method=None):
+    send_appointment_notifications(doc, method)
 
 def send_appointment_notifications(doc, method=None):
     if doc.send_confirmation_message == 0:

@@ -471,7 +471,7 @@ def send_messages(docname):
 
 
 @frappe.whitelist()
-def get_customers_numbers(by_group: bool = False, group: str=None):
+def load_customers_numbers(by_group: bool = False, group: str=None):
 	filters = {
 		"disabled": 0
 	}
@@ -488,7 +488,7 @@ def get_customers_numbers(by_group: bool = False, group: str=None):
 	for c in customers:
 		if c.mobile_no:
 			clean_number = unify_mobile_number(c.mobile_no)
-			if clean_number and clean_number not in numbers:
+			if clean_number and len(clean_number) == 12 and clean_number not in numbers:
 				numbers.append(clean_number)
 
 	return numbers
