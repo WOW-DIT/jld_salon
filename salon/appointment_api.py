@@ -46,6 +46,77 @@ def get_appointment_events(doctype, start, end, field_map, filters=None, fields=
         service = frappe.get_value("Item", event.get("service"), "item_name")
         event["title"] = f"{mrn if mrn else ""} {customer_name}\n{service}\n{customer_phone_number}" if employee else customer_name
 
+    # --- Shift background blocks ---
+    from datetime import datetime, timedelta
+
+    # Extract employee from filters if provided
+    filtered_employee = None
+    raw_filters = json.loads(filters) if isinstance(filters, str) else (filters or [])
+    for f in raw_filters:
+        if isinstance(f, list) and len(f) >= 4 and f[1] == "employee" and f[3]:
+            filtered_employee = f[3]
+            break
+
+    # Only draw shift blocks if a specific employee is selected
+    if filtered_employee:
+        employee_ids = [filtered_employee]
+
+        start_dt = datetime.strptime(start[:10], "%Y-%m-%d").date()
+        end_dt   = datetime.strptime(end[:10],   "%Y-%m-%d").date()
+
+        for employee in employee_ids:
+            current = start_dt
+            while current <= end_dt:
+                weekday = current.weekday()
+                shift_start_time = None
+                shift_end_time   = None
+
+                employee_times = frappe.get_value(
+                    "Employee Appointment Times",
+                    {"employee": employee},
+                    ["name", "start_time", "end_time"],
+                    as_dict=True,
+                )
+                if employee_times:
+                    shift_start_time = employee_times.start_time
+                    shift_end_time   = employee_times.end_time
+                else:
+                    shift_assignment = frappe.get_value(
+                        "Shift Assignment",
+                        {
+                            "employee": employee,
+                            "status": "Active",
+                            "docstatus": 1,
+                            "start_date": ["<=", current],
+                            "end_date": [">=", current],
+                            "weekday": int(weekday),
+                        },
+                        ["name", "shift_type"],
+                        as_dict=True,
+                    )
+                    if shift_assignment:
+                        shift_type = frappe.get_value(
+                            "Shift Type",
+                            shift_assignment.shift_type,
+                            ["name", "start_time", "end_time"],
+                            as_dict=True,
+                        )
+                        if shift_type:
+                            shift_start_time = shift_type.start_time
+                            shift_end_time   = shift_type.end_time
+
+                if shift_start_time and shift_end_time:
+                    events.append(frappe._dict({
+                        "name":      f"shift-bg-{employee}-{current}",
+                        "title":     "",
+                        "start":     f"{current}T{str(shift_start_time)}",
+                        "end":       f"{current}T{str(shift_end_time)}",
+                        "rendering": "background",
+                        "color":     "#d4f1d4",
+                    }))
+
+                current += timedelta(days=1)
+
     return events
 
 
@@ -70,6 +141,7 @@ def update_schedulers():
 def get_available_times(
     current_appointment_id: str,
     date: str,
+    department: str,
     service_id: str,
     employee: str,
     now: str=None,
@@ -105,26 +177,71 @@ def get_available_times(
         return leaves
             # frappe.throw(f"The employee is not available on {date}.")
 
-    def get_concurrent_guests(employee: str, check_datetime: datetime):
-        """Calculates the number of guests already booked concurrently with the proposed slot."""
+    # def get_concurrent_guests(employee: str, check_datetime: datetime):
+    #     """Calculates the number of guests already booked concurrently with the proposed slot."""
         
+    #     proposed_start = check_datetime
+    #     # proposed_end = proposed_start + timedelta(seconds=duration_seconds)
+
+    #     full_datetime_str = proposed_start.strftime("%Y-%m-%d %H:%M:%S")
+
+    #     # Fetch existing appointments for the employee on that date
+    #     concurrent_count = frappe.db.count(
+    #         "Appointment",
+    #         filters={
+    #             "name": ["!=", current_appointment_id],
+    #             "employee": employee,
+    #             "scheduled_time": full_datetime_str,
+    #             "status": "Open",
+    #         }
+    #     )
+
+    #     return concurrent_count
+
+    def get_concurrent_guests(employee: str, check_datetime: datetime):
+        """
+        Counts overlapping appointments for the same employee in the same department,
+        regardless of service — blocking the slot if any overlap exists.
+        """
         proposed_start = check_datetime
-        # proposed_end = proposed_start + timedelta(seconds=duration_seconds)
+        proposed_end = proposed_start + timedelta(seconds=duration_seconds)
 
-        full_datetime_str = proposed_start.strftime("%Y-%m-%d %H:%M:%S")
+        proposed_start_str = proposed_start.strftime("%Y-%m-%d %H:%M:%S")
+        proposed_end_str = proposed_end.strftime("%Y-%m-%d %H:%M:%S")
 
-        # Fetch existing appointments for the employee on that date
-        concurrent_count = frappe.db.count(
+        # Find any Open appointments for this employee+department that overlap
+        # with [proposed_start, proposed_end), excluding the current appointment
+        # and excluding appointments for the exact same service (already handled by capacity)
+        overlapping = frappe.db.count(
             "Appointment",
             filters={
                 "name": ["!=", current_appointment_id],
                 "employee": employee,
-                "scheduled_time": full_datetime_str,
+                "department": department,
+                "service": ["!=", service_id],        # different service only
                 "status": "Open",
+                "scheduled_time": ["<", proposed_end_str],    # other appt starts before our slot ends
+                "scheduled_end_time": [">", proposed_start_str],  # other appt ends after our slot starts
             }
         )
 
-        return concurrent_count
+        # Also count same-service bookings (original capacity logic)
+        same_service_booked = frappe.db.count(
+            "Appointment",
+            filters={
+                "name": ["!=", current_appointment_id],
+                "employee": employee,
+                "service": service_id,
+                "status": "Open",
+                "scheduled_time": proposed_start_str,
+            }
+        )
+
+        # If any cross-service overlap exists, treat slot as fully booked
+        if overlapping > 0:
+            return customers_capacity  # forces remaining_capacity = 0
+
+        return same_service_booked
     
 
     ## Convert date string to datetime
@@ -163,33 +280,53 @@ def get_available_times(
 
     if not appointment_settings:
         return {"times": []}
-    
-    shift_assignment = frappe.get_value(
-        "Shift Assignment",
+
+    employee_times = frappe.get_value(
+        "Employee Appointment Times",
         {
             "employee": employee,
-            "status": "Active",
-            "docstatus": 1,
             "start_date": ["<=", date],
             "end_date": [">=", date],
-            "weekday": int(weekday),
         },
-        ["name","shift_type"],
+        ["name", "start_time", "end_time", "start_date", "end_date", "is_unavailable"],
         as_dict=True,
     )
-    if not shift_assignment:
-        return {"times": []}
+    if employee_times:
+        if employee_times.is_unavailable == 1:
+            return {"times": []}
         
-    shift_type = frappe.get_value(
-        "Shift Type",
-        shift_assignment.shift_type,
-        ["name", "start_time", "end_time"],
-        as_dict=True
-    )
-    
+        start_time = employee_times.start_time
+        end_time = employee_times.end_time
+
+    else:
+        shift_assignment = frappe.get_value(
+            "Shift Assignment",
+            {
+                "employee": employee,
+                "status": "Active",
+                "docstatus": 1,
+                "start_date": ["<=", date],
+                "end_date": [">=", date],
+                "weekday": int(weekday),
+            },
+            ["name","shift_type"],
+            as_dict=True,
+        )
+        if not shift_assignment:
+            return {"times": []}
+        
+        shift_type = frappe.get_value(
+            "Shift Type",
+            shift_assignment.shift_type,
+            ["name", "start_time", "end_time"],
+            as_dict=True
+        )
+        start_time = shift_type.start_time
+        end_time = shift_type.end_time
+        
     setting = appointment_settings[0]
-    setting["from"] = shift_type.start_time
-    setting["to"] = shift_type.end_time
+    setting["from"] = start_time
+    setting["to"] = end_time
 
     duration_seconds = int(service_duration) if service_duration else 1800
     customers_capacity = int(setting.get("customers_capacity"))
@@ -351,3 +488,29 @@ def get_appointments_on_date(customer, selected_date, exclude_name=None):
 
     return apps
 
+
+@frappe.whitelist()
+def attend_all(date, customer):
+    try:
+        apps = frappe.get_list(
+            "Appointment",
+            filters={
+                "selected_date": date,
+                "customer": customer,
+                "status": ["in", ["Open", "Waiting"]],
+            }
+        )
+        for app in apps:
+            frappe.set_value("Appointment", app.name, "workflow_state", "Attended")
+            frappe.set_value("Appointment", app.name, "status", "Closed")
+
+            frappe.db.commit()
+
+        return {
+            "success": True
+        }
+    
+    except Exception as e:
+        return {
+            "success": False
+        }

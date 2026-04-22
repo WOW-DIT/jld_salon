@@ -164,7 +164,7 @@ doc_events = {
         "on_submit": "salon.events.send_review_messages",
 	},
 	"Customer": {
-		"before_insert": "salon.events.assign_mrn",
+		"before_insert": "salon.events.before_inserting_customer",
 	}
 }
 

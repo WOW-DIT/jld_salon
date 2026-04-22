@@ -1,0 +1,10 @@
+{
+  "doctype": "Page",
+  "module": "Salon",
+  "name": "employee-calendar",
+  "page_name": "employee-calendar",
+  "standard": "No",
+  "system_page": 0,
+  "title": "Employee Calendar",
+  "roles": []
+}
