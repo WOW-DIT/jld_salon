@@ -27,7 +27,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 	const FC_CDN = `https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@${FC_VERSION}`;
 	loadStyle(`${FC_CDN}/index.global.min.css`);
 
-	const COL_WIDTH = 180;
+	const COL_WIDTH = 200;
 	const TIME_AXIS_W = 80;
 
 	const style = document.createElement("style");
@@ -66,7 +66,6 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 			font-weight: 500;
 			margin: 0;
 		}
-		/* Frappe control overrides to fit toolbar */
 		.emp-cal-filter-group .frappe-control {
 			margin-bottom: 0 !important;
 		}
@@ -144,15 +143,6 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 			overflow: hidden;
 			background: var(--card-bg);
 		}
-		/* ── Outer border wrapper ── */
-		#emp-cal-outer {
-			flex: 1;
-			min-height: 0;
-			border: 1px solid var(--border-color);
-			border-radius: var(--border-radius-lg);
-			overflow: hidden;
-			background: var(--card-bg);
-		}
 		#emp-cal-scroll {
 			width: 100%;
 			height: 100%;
@@ -164,7 +154,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 		#emp-cal-scroll::-webkit-scrollbar-corner { background: transparent; }
 		#emp-cal-fc { min-width: 100%; }
 
-		/* ── Time axis — MUST be visible ── */
+		/* ── Time axis ── */
 		.fc-timegrid-axis,
 		.fc-col-header-cell.fc-timegrid-axis {
 			position: sticky !important;
@@ -193,7 +183,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 			visibility: visible !important;
 			opacity: 1 !important;
 		}
-		/* ── RTL: move time axis to the right for Arabic ── */
+		/* ── RTL ── */
 		.fc[dir="rtl"] .fc-timegrid-axis,
 		.fc[dir="rtl"] .fc-col-header-cell.fc-timegrid-axis {
 			left: auto !important;
@@ -296,21 +286,38 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 		</div>
 	`);
 
-	// ── Frappe Controls ───────────────────────────────────────────────────────
-	let dateControl, deptControl, serviceControl;
+	// ── State ─────────────────────────────────────────────────────────────────
+	let dateControl, customerControl, deptControl, serviceControl;
+	let selectedService = null;
+	let selectedCustomer = null;
+	let selectedDept = null;
+	let calendarInstance = null;
+	let resizeObserver = null;
+	let allEmployees = [];
+	let allSelected = true;
+	let employeeShifts = {};
+	// _suppressDateChange: prevents datesSet → dateControl.set_value → applyFilters loop
+	let _suppressDateChange = false;
+	let visibleEmployees = [];
+	let employeeEventCounts = {};
 
+	// ── Frappe Controls ───────────────────────────────────────────────────────
 	function makeControls() {
-		// Date picker
 		dateControl = frappe.ui.form.make_control({
-			df: { fieldtype: "Date", fieldname: "cal_date", label: "" },
+			df: {
+				fieldtype: "Date",
+				fieldname: "cal_date",
+				label: "",
+				onchange: () => {
+					if (_suppressDateChange) return;
+					const v = dateControl.get_value();
+					if (v) navigateToDate(v);
+				}
+			},
 			parent: document.getElementById("emp-cal-date-wrap"),
 			render_input: true,
 		});
 		dateControl.set_value(frappe.datetime.get_today());
-		dateControl.$input.on("change", () => {
-			const v = dateControl.get_value();
-			if (v && calendarInstance) calendarInstance.gotoDate(v);
-		});
 
 		customerControl = frappe.ui.form.make_control({
 			df: {
@@ -319,30 +326,15 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 				label: "",
 				options: "Customer",
 				placeholder: __("Mobile Number, Customer Name, MRN"),
+				onchange: () => {
+					selectedCustomer = customerControl.get_value() || null;
+					if (calendarInstance) calendarInstance.refetchEvents();
+				}
 			},
 			parent: document.getElementById("emp-cal-customer-wrap"),
 			render_input: true,
 		});
-		customerControl.$input.on("change", () => {
-			if (calendarInstance) calendarInstance.refetchEvents();
-			// serviceControl.set_value("");
-			// applyFilters();
-		});
-		// mobileControl = frappe.ui.form.make_control({
-		// 	df: {
-		// 		fieldtype: "Link",
-		// 		fieldname: "mobile_number",
-		// 		label: "",
-		// 		placeholder: __("Search by mobile…"),
-		// 	},
-		// 	parent: document.getElementById("emp-cal-mobile-wrap"),
-		// 	render_input: true,
-		// });
-		// mobileControl.$input.on("input", () => {
-		// 	if (calendarInstance) calendarInstance.refetchEvents();
-		// });
 
-		// Department link
 		deptControl = frappe.ui.form.make_control({
 			df: {
 				fieldtype: "Link",
@@ -350,16 +342,24 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 				label: "",
 				options: "Item Group",
 				placeholder: __("All Departments"),
+				get_query: () => {
+					return {
+						filters: {
+							name: ["!=", "All Item Groups"],
+							parent_item_group: ["not in", "All Item Groups"],
+							is_group: 0,
+						},
+					};
+				},
+				onchange: () => {
+					selectedDept = deptControl.get_value() || null;
+					serviceControl.set_value("").then(() => applyFilters());
+				}
 			},
 			parent: document.getElementById("emp-cal-dept-wrap"),
 			render_input: true,
 		});
-		deptControl.$input.on("change", () => {
-			serviceControl.set_value("");
-			applyFilters();
-		});
 
-		// Service multi-select using Frappe MultiSelectDialog or simple Link
 		serviceControl = frappe.ui.form.make_control({
 			df: {
 				fieldtype: "Link",
@@ -373,15 +373,18 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 						filters: {
 							is_service: 1,
 							disabled: 0,
-							...(dept ? { item_group: dept } : {}),   // filter by Item Group
+							...(dept ? { item_group: dept } : {}),
 						},
 					};
 				},
+				onchange: () => {
+					selectedService = serviceControl.get_value() || null;
+					applyFilters();
+				}
 			},
 			parent: document.getElementById("emp-cal-service-wrap"),
 			render_input: true,
 		});
-		serviceControl.$input.on("change", applyFilters);
 	}
 
 	// ── Populate employee select ──────────────────────────────────────────────
@@ -397,64 +400,82 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 		});
 	}
 
-	// ── Apply filters — fetch matching employees then re-init ─────────────────
-	let allEmployees = [];
-
-	function applyFilters() {
-		const dept    = deptControl?.get_value() || null;
-		const service = serviceControl?.get_value() || null;
-		
-		let filters = {};
-		if (dept)    filters.department = dept;
-
-		if (service) {
-			debugger;
-			// Fetch employees who can perform this service
-			frappe.call({
-				method: "frappe.client.get_list",
-				args: {
-					doctype: "Employee",
-					filters: { ...filters, status: "Active" },
-					fields: ["name", "employee_name", "image"],
-					limit_page_length: 200,
-				},
-				callback(r) {
-					// Further filter by service linkage if needed
-					// For now show department-filtered employees
-					// You can add service→employee mapping via your own method
-					const emps = r.message || [];
-					populateEmployeeSelect(emps);
-					const sel = document.getElementById("emp-cal-emp-select");
-					const ids = Array.from(sel.options).map(o => o.value);
-					const visible = allEmployees.filter(e => ids.includes(e.name));
-					// merge back any extra props not in frappe list
-					initCalendar(emps.length ? emps : allEmployees);
-				},
-			});
-		} else {
-			// No service selected — filter allEmployees by dept only
-			const filtered = dept
-				? allEmployees.filter(e => e.department === dept)
-				: allEmployees;
-			populateEmployeeSelect(filtered);
-			initCalendar(filtered);
-		}
+	// ── Build employeeShifts map from employee list ───────────────────────────
+	function buildShifts(emps) {
+		employeeShifts = {};
+		emps.forEach(emp => {
+			employeeShifts[emp.name] = {
+				unavailable: emp.unavailable || false,
+				start: emp.shift_start,
+				end:   emp.shift_end,
+			};
+		});
 	}
 
-	// ── Employee search — filters the <select> options in real time ───────────
+	// ── applyFilters — full rebuild (service / dept / employee-filter changed) ─
+	function applyFilters() {
+		const currentDate = dateControl?.get_value() || frappe.datetime.get_today();
+		frappe.call({
+			method: "salon.salon.page.employee_calendar.employee_calendar.get_employees",
+			args: {
+				service: selectedService || null,
+				department: selectedDept || null,
+				date: currentDate,
+			},
+			callback(r) {
+				const emps = r.message || [];
+				allEmployees = emps;
+				populateEmployeeSelect(emps);
+				initCalendar(emps, currentDate);
+			},
+		});
+	}
+
+	// ── navigateToDate — date changed; reuse existing calendar, just refetch ──
+	//    Fetches fresh employee+shift data for the new date, updates shifts,
+	//    then calls gotoDate + refetchEvents without destroying the calendar.
+	function navigateToDate(newDate) {
+		frappe.call({
+			method: "salon.salon.page.employee_calendar.employee_calendar.get_employees",
+			args: {
+				service: selectedService || null,
+				department: selectedDept || null,
+				date: newDate,
+			},
+			callback(r) {
+				const emps = r.message || [];
+				allEmployees = emps;
+
+				// Preserve whatever the user currently has selected in the list
+				const sel = document.getElementById("emp-cal-emp-select");
+				const currentlySelected = Array.from(sel.selectedOptions).map(o => o.value);
+				populateEmployeeSelect(emps, currentlySelected.length ? currentlySelected : null);
+
+				// IMPORTANT: update shifts BEFORE refetchEvents so the events
+				// callback has the correct data when it runs
+				buildShifts(emps);
+
+				if (calendarInstance) {
+					_suppressDateChange = true;
+					calendarInstance.gotoDate(newDate);
+					setTimeout(() => { _suppressDateChange = false; }, 0);
+					calendarInstance.refetchEvents();
+				}
+			},
+		});
+	}
+
+	// ── Employee search ───────────────────────────────────────────────────────
 	document.addEventListener("input", (e) => {
 		if (e.target.id !== "emp-cal-emp-search") return;
 		const q = e.target.value.trim().toLowerCase();
 		const sel = document.getElementById("emp-cal-emp-select");
 		Array.from(sel.options).forEach((opt) => {
-			const match = !q || opt.textContent.toLowerCase().includes(q);
-			opt.style.display = match ? "" : "none";
-			// Keep previously selected state; don't auto-deselect hidden options
+			opt.style.display = (!q || opt.textContent.toLowerCase().includes(q)) ? "" : "none";
 		});
 	});
 
 	// ── Select / Deselect All toggle ──────────────────────────────────────────
-	let allSelected = true;
 	document.addEventListener("click", (e) => {
 		if (e.target.id !== "emp-cal-toggle-all") return;
 		allSelected = !allSelected;
@@ -463,11 +484,13 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 		e.target.textContent = allSelected ? __("None") : __("All");
 	});
 
-	// ── Calendar ──────────────────────────────────────────────────────────────
-	let calendarInstance = null;
-	let resizeObserver   = null;
+	// ── initCalendar — full destroy + rebuild ─────────────────────────────────
+	//    Only called by applyFilters (service/dept/employee-set changes).
+	//    Date navigation uses navigateToDate instead.
+	function initCalendar(emps, calDate) {
+		visibleEmployees = emps;
+		calDate = calDate || frappe.datetime.get_today();
 
-	function initCalendar(visibleEmployees) {
 		const calEl    = document.getElementById("emp-cal-fc");
 		const outerEl  = document.getElementById("emp-cal-outer");
 		const scrollEl = document.getElementById("emp-cal-scroll");
@@ -483,6 +506,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 			id: emp.name,
 			title: emp.employee_name,
 			image: emp.image || null,
+			eventCounts: { total: 0, Open: 0, Closed: 0, Cancelled: 0 },
 		}));
 
 		calendarInstance = new FullCalendar.Calendar(calEl, {
@@ -492,22 +516,42 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 			height: outerEl.clientHeight,
 			nowIndicator: true,
 			allDaySlot: false,
+			selectable: true,
+			selectMirror: true,
 			slotMinTime: "11:00:00",
 			slotMaxTime: "22:00:00",
 			slotDuration: "00:15:00",
 			slotLabelInterval: "00:30:00",
 			slotLabelFormat: { hour: "numeric", minute: "2-digit", hour12: true },
 			eventTimeFormat: { hour: "numeric", minute: "2-digit", hour12: true },
-			// slotLabelFormat: { hour: "2-digit", minute: "2-digit", hour12: false },
 			headerToolbar: false,
 			resourceAreaWidth: "0px",
 			stickyHeaderDates: false,
 			stickyFooterScrollbar: false,
 			resources,
 
+			// resourceLabelContent(arg) {
+			// 	const name  = arg.resource.title;
+			// 	const image = arg.resource.extendedProps.image;
+			// 	const counts = arg.resource.extendedProps.eventCounts || { total: 0, Open: 0, Closed: 0, Cancelled: 0 };
+
+			// 	let avatarHtml;
+			// 	if (image) {
+			// 		avatarHtml = `<img class="emp-avatar" src="${frappe.utils.escape_html(image)}" alt="" />`;
+			// 	} else {
+			// 		const initials = name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("");
+			// 		avatarHtml = `<span class="emp-avatar-placeholder">${initials}</span>`;
+			// 	}
+			// 	const el = document.createElement("div");
+			// 	el.style.cssText = "display:flex;align-items:center;gap:6px;justify-content:center;width:100%;overflow:hidden;";
+			// 	el.innerHTML = `${avatarHtml}<span style="overflow:hidden;text-overflow:ellipsis;">${frappe.utils.escape_html(name)}</span>`;
+			// 	return { domNodes: [el] };
+			// },
 			resourceLabelContent(arg) {
 				const name  = arg.resource.title;
 				const image = arg.resource.extendedProps.image;
+				const counts = employeeEventCounts[arg.resource.id] || { total: 0, Open: 0, Closed: 0, Cancelled: 0 };
+
 				let avatarHtml;
 				if (image) {
 					avatarHtml = `<img class="emp-avatar" src="${frappe.utils.escape_html(image)}" alt="" />`;
@@ -515,14 +559,49 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 					const initials = name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("");
 					avatarHtml = `<span class="emp-avatar-placeholder">${initials}</span>`;
 				}
+
+				const statusDots = [
+					{ key: "Open",      color: "#ef4444", label: __("Open") },
+					{ key: "Closed",    color: "#22c55e", label: __("Closed") },
+					{ key: "Cancelled", color: "#636363", label: __("Cancelled") },
+				].map(s => {
+					const n = counts[s.key] || 0;
+					return `<span title="${s.label}: ${n}" style="
+						display:inline-flex;align-items:center;gap:2px;
+						font-size:0.65rem;font-weight:600;
+						background:${s.color}22;color:${s.color};
+						border:1px solid ${s.color}55;
+						border-radius:10px;padding:1px 5px;line-height:1.4;
+					">${n}</span>`;
+				}).join("");
+
+				const totalBadge = `<span title="${__("Total")}: ${counts.total}" style="
+					font-size:0.7rem;font-weight:700;
+					background:var(--bg-blue);color:var(--text-on-blue,#fff);
+					border-radius:10px;padding:1px 7px;line-height:1.4;
+					background:#6366f1;color:#fff;
+				">${counts.total}</span>`;
+
 				const el = document.createElement("div");
-				el.style.cssText = "display:flex;align-items:center;gap:6px;justify-content:center;width:100%;overflow:hidden;";
-				el.innerHTML = `${avatarHtml}<span style="overflow:hidden;text-overflow:ellipsis;">${frappe.utils.escape_html(name)}</span>`;
+				el.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;padding:4px 2px;box-sizing:border-box;";
+				el.innerHTML = `
+					<div style="display:flex;align-items:center;gap:6px;justify-content:center;width:100%;overflow:hidden;">
+						<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${frappe.utils.escape_html(name)}</span>
+						${totalBadge}
+					</div>
+					<div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">
+						${statusDots}
+					</div>
+				`;
 				return { domNodes: [el] };
 			},
 
 			events(fetchInfo, successCallback, failureCallback) {
-				const customer = customerControl.get_value();
+				const customer  = customerControl.get_value() || null;
+				const department = deptControl?.get_value() || null;
+				const service   = serviceControl?.get_value() || null;
+				// Always derive the visible date from fetchInfo — never from dateControl
+				const fetchDate = fetchInfo.startStr.split("T")[0];
 
 				frappe.call({
 					method: "salon.salon.page.employee_calendar.employee_calendar.get_appointment_events",
@@ -538,10 +617,11 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 						}),
 						filters: JSON.stringify([]),
 						customer: customer,
+						department: department,
+						service: service,
 					},
 					callback(r) {
-						const raw = r.message || [];
-						console.log("SUCCESS COUNT:", raw.length);
+						const raw = r.message.events || [];
 						const mapped = raw.map((e) => {
 							const isBg = e.rendering === "background";
 							return {
@@ -556,30 +636,127 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 								display:    isBg ? "background" : "block",
 								classNames: isBg ? ["fc-bg-event"] : [],
 								extendedProps: {
-									url:      e.url || null,
-									status:   e.status,
+									url: e.url || null,
+									status: e.status,
 									customer: e.customer_name,
-									service:  e.service,
-									phone:    e.customer_phone_number,
+									service: e.service_name,
+									phone: e.customer_phone_number,
+									employee: e.employee,
+									item_group: e.department,
+									special_request: e.special_request || false,
+									paid_deposit: e.paid_deposit || false,
 								},
 							};
 						});
-						console.log("MAPPED:", mapped);
-						successCallback(mapped);				
+
+						// ── Shift background events ───────────────────────
+						// Built here using the live fetchDate so they are always
+						// correct when navigating dates without a full rebuild.
+						const slotMin = "11:00:00";
+						const slotMax = "22:00:00";
+						const shiftEvents = [];
+
+						Object.entries(employeeShifts).forEach(([empId, shift]) => {
+							if (shift.unavailable) {
+								shiftEvents.push({
+									id: `unavail-${empId}-${fetchDate}`,
+									resourceId: empId,
+									start: `${fetchDate}T${slotMin}`,
+									end:   `${fetchDate}T${slotMax}`,
+									display: "background",
+									backgroundColor: "rgba(0,0,0,0.45)",
+								});
+							} else {
+								if (shift.start && shift.start > slotMin) {
+									shiftEvents.push({
+										id: `pre-${empId}-${fetchDate}`,
+										resourceId: empId,
+										start: `${fetchDate}T${slotMin}`,
+										end:   `${fetchDate}T${shift.start}`,
+										display: "background",
+										backgroundColor: "rgba(0,0,0,0.45)",
+									});
+								}
+								if (shift.end && shift.end < slotMax) {
+									shiftEvents.push({
+										id: `post-${empId}-${fetchDate}`,
+										resourceId: empId,
+										start: `${fetchDate}T${shift.end}`,
+										end:   `${fetchDate}T${slotMax}`,
+										display: "background",
+										backgroundColor: "rgba(0,0,0,0.45)",
+									});
+								}
+							}
+						});
+
+						// successCallback([...mapped, ...shiftEvents]);
+
+						const counts = {};
+						mapped.forEach(ev => {
+							if (ev.display === "background") return;
+							const id = ev.resourceId;
+							if (!id) return;
+							if (!counts[id]) counts[id] = { total: 0, Open: 0, Closed: 0, Cancelled: 0 };
+							counts[id].total++;
+							const status = ev.extendedProps.status;
+							if (status in counts[id]) counts[id][status]++;
+						});
+
+						employeeEventCounts = counts;
+						successCallback([...mapped, ...shiftEvents]);
+
+						// Re-render resource labels now that counts are known
+						if (calendarInstance) {
+							calendarInstance.refetchResources();
+						}
 					},
 					error: failureCallback,
 				});
 			},
 
 			eventDidMount(info) {
+				const isRTL = frappe.boot.lang === "ar";
+
 				if (info.event.display === "background") return;
 				const p = info.event.extendedProps;
+
+				const groupStrips = {
+					"باقات العرائس": "#54008d"
+				}
+		
+				const stripColor = groupStrips[p.item_group];
+				if (stripColor) {
+					info.el.style.setProperty("border-left", `8px solid ${stripColor}`, "important");
+				}
+				if (p.paid_deposit) {					
+					info.el.style.setProperty("border-right", `8px solid green`, "important");
+
+				}
+				if (p.special_request) {
+					const badge = document.createElement("span");
+					badge.textContent = "⭐";
+					badge.style.cssText = `
+						position: absolute;
+						top: 2px;
+						${isRTL ? "left" : "right"}: 3px;
+						font-size: 16px;
+						line-height: 1;
+						pointer-events: none;
+					`;
+					info.el.style.position = "relative";
+					info.el.appendChild(badge);
+				}
+
+				// ── Tooltip (unchanged) ────────────────────────────────
 				$(info.el).tooltip({
 					title: [
 						p.customer ? `<b>${frappe.utils.escape_html(p.customer)}</b>` : "",
 						p.service  ? frappe.utils.escape_html(p.service) : "",
 						p.phone    ? `📞 ${frappe.utils.escape_html(p.phone)}` : "",
 						p.status   ? `<span class="indicator ${statusIndicatorClass(p.status)}">${p.status}</span>` : "",
+						p.special_request ? `<span style="color:#f59e0b">⭐ ${p.employee}</span>` : "",
+						p.paid_deposit ? `<span>$ Paid</span>` : "",
 					].filter(Boolean).join("<br>"),
 					html: true, placement: "top", container: "body", trigger: "hover",
 				});
@@ -593,25 +770,166 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 				else frappe.set_route("Form", "Appointment", info.event.id);
 			},
 
+			// datesSet fires when the calendar's visible date changes (prev/next/today).
+			// We suppress it during programmatic gotoDate calls to avoid loops.
 			datesSet(info) {
 				document.getElementById("emp-cal-title").textContent = info.view.title;
+				if (_suppressDateChange) return;
+
+				const newDate = info.startStr.split("T")[0];
+				if (dateControl?.get_value() === newDate) return;
+
+				// Update the date picker silently — the picker's onchange is
+				// suppressed so it won't trigger another navigateToDate call.
+				_suppressDateChange = true;
+				dateControl.set_value(newDate);
+				setTimeout(() => { _suppressDateChange = false; }, 0);
+
+				// Fetch fresh shift data and refetch events for the new date.
+				navigateToDate(newDate);
+			},
+
+			select(info) {
+				const employee = info.resource?.id || null;
+				const employeeName = info.resource?.title || null;
+				const selected_date = info.startStr.split("T")[0];
+				const start = info.startStr.replace("T", " ").slice(0, 19);
+				frappe.route_options = {
+					selected_date: selected_date,
+					scheduled_time: start,
+					department: selectedDept,
+					customer: selectedCustomer,
+					service: selectedService,
+					...(employee ? { employee, employee_name: employeeName } : {}),
+				};
+				frappe.new_doc("Appointment");
+			},
+
+			selectAllow(selectInfo) {
+				const employee = selectInfo.resource?.id;
+				if (!employee || !employeeShifts[employee]) return true;
+				const shift = employeeShifts[employee];
+				if (shift.unavailable) return false;
+				const timeStr = selectInfo.startStr.split("T")[1]?.slice(0, 8);
+				const endStr  = selectInfo.endStr.split("T")[1]?.slice(0, 8);
+				if (!shift.start || !shift.end) return false;
+				return timeStr >= shift.start && endStr <= shift.end;
+			},
+
+			editable: true,
+			eventResourceEditable: true, // allow dragging between employee columns
+
+			// Prevent dropping into blocked (shift/unavailable) zones
+			eventAllow(dropInfo, draggedEvent) {
+				if (draggedEvent.display === "background") return false;
+				const employee = dropInfo.resource?.id;
+				if (!employee || !employeeShifts[employee]) return true;
+				const shift = employeeShifts[employee];
+				if (shift.unavailable) return false;
+				const timeStr = dropInfo.startStr.split("T")[1]?.slice(0, 8);
+				const endStr  = dropInfo.endStr.split("T")[1]?.slice(0, 8);
+				if (!shift.start || !shift.end) return true;
+				return timeStr >= shift.start && endStr <= shift.end;
+			},
+
+			eventDragStart(info) {
+				// Destroy tooltip while dragging to avoid ghost tooltips
+				$(info.el).tooltip("destroy");
+				$(".tooltip").remove();
+				const killTooltips = () => $(".tooltip").remove();
+				document._calTooltipKiller = setInterval(killTooltips, 50);
+			},
+
+			eventDragStop(info) {
+				clearInterval(document._calTooltipKiller);
+				document._calTooltipKiller = null;
+				$(".tooltip").remove();
+			},
+
+			eventDrop(info) {
+				const event       = info.event;
+				const newStart    = event.startStr.replace("T", " ").slice(0, 19);
+				const newEnd      = event.endStr ? event.endStr.replace("T", " ").slice(0, 19) : null;
+				const newEmployee = event.getResources()[0]?.id || null;
+
+				frappe.confirm(
+					__("Update appointment time{0}?", [newEmployee ? __(" and employee") : ""]),
+					() => {
+						const values = { scheduled_time: newStart };
+						if (newEnd)      values.scheduled_end_time = newEnd;
+						if (newEmployee) values.employee = newEmployee;
+
+						frappe.call({
+							method: "frappe.client.set_value",
+							args: { doctype: "Appointment", name: event.id, fieldname: values },
+							callback(r) {
+								if (r.exc) {
+									frappe.msgprint(__("Failed to update appointment."));
+									info.revert();
+								} else {
+									calendarInstance.refetchEvents(); // ← add this
+								}
+							},
+							error() { info.revert(); },
+						});
+					},
+					() => info.revert() // cancelled — snap back
+				);
+			},
+
+			eventResize(info) {
+				const event  = info.event;
+				const newEnd = event.endStr ? event.endStr.replace("T", " ").slice(0, 19) : null;
+				if (!newEnd) { info.revert(); return; }
+
+				frappe.confirm(
+					__("Update appointment end time?"),
+					() => {
+						frappe.call({
+							method: "frappe.client.set_value",
+							args: { doctype: "Appointment", name: event.id, fieldname: { scheduled_end_time: newEnd } },
+							callback(r) {
+								if (r.exc) {
+									frappe.msgprint(__("Failed to update appointment."));
+									info.revert();
+								} else {
+									calendarInstance.refetchEvents();
+								}
+							},
+							error() { info.revert(); },
+						});
+					},
+					() => info.revert()
+				);
 			},
 		});
+
+		// Build shifts BEFORE render so the events callback has correct data
+		// on the very first fetch.
+		buildShifts(visibleEmployees);
+
 		calendarInstance.render();
 
+		// Navigate to the requested date without triggering datesSet → navigateToDate
+		_suppressDateChange = true;
+		calendarInstance.gotoDate(calDate);
+		setTimeout(() => { _suppressDateChange = false; }, 0);
+
 		// ── Toolbar buttons ───────────────────────────────────────────────────
+		// prev/next/today let the calendar move itself; datesSet handles the rest.
 		document.getElementById("emp-cal-prev").onclick  = () => calendarInstance.prev();
 		document.getElementById("emp-cal-next").onclick  = () => calendarInstance.next();
 		document.getElementById("emp-cal-today").onclick = () => calendarInstance.today();
 
-		// Apply employee filter
+		// Employee filter apply
 		document.getElementById("emp-cal-apply").onclick = () => {
 			const sel = document.getElementById("emp-cal-emp-select");
 			const ids = Array.from(sel.selectedOptions).map((o) => o.value);
 			const filtered = ids.length
 				? allEmployees.filter((emp) => ids.includes(emp.name))
 				: allEmployees;
-			initCalendar(filtered);
+			const d = dateControl?.get_value() || frappe.datetime.get_today();
+			initCalendar(filtered, d);
 		};
 
 		// ResizeObserver
@@ -628,14 +946,11 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 	// ── Boot ──────────────────────────────────────────────────────────────────
 	loadScript(`${FC_CDN}/index.global.min.js`).then(() => {
 		makeControls();
-		frappe.call({
-			method: "salon.salon.page.employee_calendar.employee_calendar.get_employees",
-			callback(r) {
-				allEmployees = r.message || [];
-				populateEmployeeSelect(allEmployees);
-				initCalendar(allEmployees);
-			},
-		});
+		applyFilters();
+
+		document.getElementById("emp-cal-fc").addEventListener("mousedown", () => {
+			$(".tooltip").remove();
+		}, true);
 	});
 
 	// ── Helpers ───────────────────────────────────────────────────────────────

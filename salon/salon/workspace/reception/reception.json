@@ -9,7 +9,7 @@
    "label": "Appointments by Employee"
   }
  ],
- "content": "[{\"id\":\"WlaLx66356\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Today's Appointments\",\"col\":6}},{\"id\":\"RlPRXnWf8h\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Appointments by Employee\",\"col\":6}},{\"id\":\"c_mHzHLu4h\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Your shortcuts</b></span>\",\"col\":12}},{\"id\":\"DUzufqkX97\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"View Calendar\",\"col\":12}},{\"id\":\"p9ZtmjzDSk\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New Calendar (Beta)\",\"col\":12}},{\"id\":\"OjekM01oHV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"W3wVXuWNK1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Today's Appointments\",\"col\":4}},{\"id\":\"O6yxO8jPVF\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Confirmed Appointments\",\"col\":4}},{\"id\":\"AG3GOBchD7\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Cancelled Appointments\",\"col\":4}},{\"id\":\"gL-x8GtjsO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Offers\",\"col\":3}},{\"id\":\"sa_0lwcBf3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customers\",\"col\":3}},{\"id\":\"EmIi2mHXTf\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Open Services\",\"col\":3}},{\"id\":\"hW5hc5ZoJK\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Issues\",\"col\":3}},{\"id\":\"8ctoClEF2K\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"7u9W9mqica\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Masters</b></span>\",\"col\":12}},{\"id\":\"jnIqf1SgYh\",\"type\":\"card\",\"data\":{\"card_name\":\"Services & Pricing\",\"col\":4}},{\"id\":\"58WnstbMcK\",\"type\":\"card\",\"data\":{\"card_name\":\"Appointment\",\"col\":4}},{\"id\":\"qNjK8VJuCU\",\"type\":\"card\",\"data\":{\"card_name\":\"Transactions\",\"col\":4}},{\"id\":\"o0P7vlJqSW\",\"type\":\"card\",\"data\":{\"card_name\":\"Employee Management\",\"col\":4}},{\"id\":\"R7QVVd4Hrf\",\"type\":\"card\",\"data\":{\"card_name\":\"Data\",\"col\":4}}]",
+ "content": "[{\"id\":\"WlaLx66356\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Today's Appointments\",\"col\":6}},{\"id\":\"RlPRXnWf8h\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Appointments by Employee\",\"col\":6}},{\"id\":\"c_mHzHLu4h\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Your shortcuts</b></span>\",\"col\":12}},{\"id\":\"DUzufqkX97\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"View Calendar\",\"col\":12}},{\"id\":\"OjekM01oHV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"W3wVXuWNK1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Today's Appointments\",\"col\":4}},{\"id\":\"O6yxO8jPVF\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Confirmed Appointments\",\"col\":4}},{\"id\":\"AG3GOBchD7\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Cancelled Appointments\",\"col\":4}},{\"id\":\"gL-x8GtjsO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Offers\",\"col\":3}},{\"id\":\"sa_0lwcBf3\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customers\",\"col\":3}},{\"id\":\"EmIi2mHXTf\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Open Services\",\"col\":3}},{\"id\":\"hW5hc5ZoJK\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Issues\",\"col\":3}},{\"id\":\"8ctoClEF2K\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"7u9W9mqica\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Masters</b></span>\",\"col\":12}},{\"id\":\"jnIqf1SgYh\",\"type\":\"card\",\"data\":{\"card_name\":\"Services & Pricing\",\"col\":4}},{\"id\":\"58WnstbMcK\",\"type\":\"card\",\"data\":{\"card_name\":\"Appointment\",\"col\":4}},{\"id\":\"qNjK8VJuCU\",\"type\":\"card\",\"data\":{\"card_name\":\"Transactions\",\"col\":4}},{\"id\":\"o0P7vlJqSW\",\"type\":\"card\",\"data\":{\"card_name\":\"Employee Management\",\"col\":4}},{\"id\":\"R7QVVd4Hrf\",\"type\":\"card\",\"data\":{\"card_name\":\"Data\",\"col\":4}}]",
  "creation": "2025-12-07 12:08:56.746162",
  "custom_blocks": [],
  "docstatus": 0,
@@ -218,7 +218,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-04-22 17:22:54.914454",
+ "modified": "2026-04-26 13:02:17.046994",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Reception",
@@ -238,13 +238,6 @@
  "sequence_id": 4.0,
  "shortcuts": [
   {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "New Calendar (Beta)",
-   "link_to": "employee-calendar",
-   "type": "Page"
-  },
-  {
    "color": "Red",
    "doc_view": "List",
    "format": "{}",
@@ -263,6 +256,14 @@
    "type": "DocType"
   },
   {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "View Calendar",
+   "link_to": "employee-calendar",
+   "type": "Page",
+   "url": "/app/appointment/view/calendar/default"
+  },
+  {
    "color": "Green",
    "doc_view": "List",
    "format": "{} Confirmed",
@@ -270,13 +271,6 @@
    "link_to": "Appointment",
    "stats_filter": "[[\"Appointment\",\"status\",\"=\",\"Closed\",false],[\"Appointment\",\"selected_date\",\"Timespan\",\"today\",false]]",
    "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "View Calendar",
-   "type": "URL",
-   "url": "/app/appointment/view/calendar/default"
   },
   {
    "color": "Red",

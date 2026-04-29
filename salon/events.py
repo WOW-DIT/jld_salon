@@ -80,72 +80,181 @@ def deduct_deposit_balance(doc, method=None):
 
 ###### Appointments (Calendar) ######
 ### validate
+# def validate_availability(doc, method=None):
+#     def get_concurrent_guests(employee: str, check_datetime: datetime):
+#         proposed_start = check_datetime
+#         if isinstance(proposed_start, str):
+#             proposed_start = datetime.strptime(proposed_start, "%Y-%m-%d %H:%M:%S")
+
+#         proposed_end = proposed_start + timedelta(seconds=duration_seconds)
+
+#         proposed_start_str = proposed_start.strftime("%Y-%m-%d %H:%M:%S")
+#         proposed_end_str   = proposed_end.strftime("%Y-%m-%d %H:%M:%S")
+
+#         total_booked = frappe.db.count(
+#             "Appointment",
+#             filters={
+#                 "name": ["!=", doc.name],
+#                 "employee": employee,
+#                 "status": ["in", ["Open", "Closed"]],
+#                 "department": doc.department,
+#                 "scheduled_time": ["<",  proposed_end_str],
+#                 "scheduled_end_time": [">",  proposed_start_str],
+#             }
+#         )
+
+#         return total_booked
+    
+
+#     def check_employee_leaves():
+#         leaves = frappe.get_all(
+#             "Leave Application",
+#             filters={
+#                 "employee": doc.employee,
+#                 "status": "Approved",
+#                 "from_date": ["<=", doc.selected_date],
+#                 "to_date": [">=", doc.selected_date],
+#             }
+#         )
+#         if leaves:
+#             frappe.throw(f"The employee is not available on {doc.selected_date}.")
+
+#     check_employee_leaves()
+
+#     start_date = doc.scheduled_time
+
+#     if isinstance(start_date, str):
+#         date = start_date.split(" ")[0]
+#         year = int(date.split("-")[0])
+#         month = int(date.split("-")[1])
+#         day = int(date.split("-")[2])
+
+#         time = start_date.split(" ")[1]
+#         hour = int(time.split(":")[0])
+#         minute = int(time.split(":")[1])
+#         second = int(time.split(":")[2])
+        
+#         start_date = datetime(year, month, day, hour, minute, second)
+    
+#     # weekday = start_date.weekday()
+#     # filters = {
+#     #     "department": doc.department,
+#     #     "employee": doc.employee,
+#     #     "weekday": str(weekday),
+#     # }
+#     # setting = frappe.get_all(
+#     #     "Appointment Setting",
+#     #     filters=filters,
+#     #     fields=["name", "customers_capacity", "duration", "from", "to"]
+#     # )
+#     service_duration = frappe.get_value("Item", doc.service, "service_duration")
+#     appointment_settings = frappe.get_all(
+#         "Service Employee",
+#         filters={
+#             "parent": doc.service,
+#             "employee": doc.employee,
+#         },
+#         fields=["name", "customers_capacity"]
+#     )
+
+#     if not appointment_settings:
+#         frappe.throw(
+#             "No appointment settings found for this employee on the selected day."
+#         )
+
+#     duration_seconds = int(service_duration) if service_duration else 1800
+#     customers_capacity = int(appointment_settings[0].customers_capacity or 1)
+
+#     concurrent_count  = get_concurrent_guests(
+#         doc.employee,
+#         doc.scheduled_time
+#     )
+
+#     if concurrent_count >= customers_capacity:
+#         frappe.throw(
+#             f"""
+#             This time slot is fully booked.
+
+#             • Current guests: {concurrent_count}
+#             • Allowed capacity: {customers_capacity}
+
+#             Please check the calendar or select another time.
+#             """,
+#             title="Slot Not Available",
+#         )
+
+#     update_status(doc, method)
+
+#     return True
+
 def validate_availability(doc, method=None):
-    # def get_concurrent_guests(employee: str, scheduled_time: datetime):
-    #     """Calculates the number of guests already booked concurrently with the proposed slot."""
-
-    #     # Fetch existing appointments for the employee on that date
-    #     concurrent_count = frappe.db.count(
-    #         "Appointment",
-    #         filters={
-    #             "name": ["!=", doc.name],
-    #             "employee": employee,
-    #             "scheduled_time": scheduled_time,
-    #             "status": "Open",
-    #         },
-    #     )
-
-    #     return concurrent_count
-    def get_concurrent_guests(employee: str, check_datetime: datetime):
+    def get_dep_concurrent_guests(employee: str, check_datetime: datetime):
         """
-        Counts overlapping appointments for the same employee in the same department,
-        regardless of service — blocking the slot if any overlap exists.
+        Counts all overlapping appointments for this employee in the same department.
         """
-        def to_datetime(value):
-            if isinstance(value, str):
-                return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-            return value
-    
-        proposed_start = to_datetime(check_datetime)
+        proposed_start = check_datetime
+        if isinstance(proposed_start, str):
+            proposed_start = datetime.strptime(proposed_start, "%Y-%m-%d %H:%M:%S")
         proposed_end = proposed_start + timedelta(seconds=duration_seconds)
-
         proposed_start_str = proposed_start.strftime("%Y-%m-%d %H:%M:%S")
-        proposed_end_str = proposed_end.strftime("%Y-%m-%d %H:%M:%S")
-
-        # Find any Open appointments for this employee+department that overlap
-        # with [proposed_start, proposed_end), excluding the current appointment
-        # and excluding appointments for the exact same service (already handled by capacity)
-        overlapping = frappe.db.count(
+        proposed_end_str   = proposed_end.strftime("%Y-%m-%d %H:%M:%S")
+        total_booked = frappe.db.count(
             "Appointment",
             filters={
                 "name": ["!=", doc.name],
                 "employee": employee,
+                "status": ["in", ["Open", "Closed"]],
                 "department": doc.department,
-                "service": ["!=", doc.service],        # different service only
-                "status": "Open",
-                "scheduled_time": ["<", proposed_end_str],    # other appt starts before our slot ends
-                "scheduled_end_time": [">", proposed_start_str],  # other appt ends after our slot starts
+                "scheduled_time": ["<",  proposed_end_str],
+                "scheduled_end_time": [">",  proposed_start_str],
             }
         )
+        return total_booked
 
-        # Also count same-service bookings (original capacity logic)
-        same_service_booked = frappe.db.count(
-            "Appointment",
-            filters={
-                "name": ["!=", doc.name],
-                "employee": employee,
-                "service": doc.service,
-                "status": "Open",
-                "scheduled_time": proposed_start_str,
-            }
-        )
+    def get_diff_dep_concurrent_guests(employee: str, check_datetime: datetime):
+        """
+        Counts overlapping appointments for this employee in different departments,
+        respecting allow_overlapping and Overlapping Department settings.
+        """
+        proposed_start = check_datetime
+        if isinstance(proposed_start, str):
+            proposed_start = datetime.strptime(proposed_start, "%Y-%m-%d %H:%M:%S")
+        proposed_end = proposed_start + timedelta(seconds=duration_seconds)
+        proposed_start_str = proposed_start.strftime("%Y-%m-%d %H:%M:%S")
+        proposed_end_str   = proposed_end.strftime("%Y-%m-%d %H:%M:%S")
 
-        # If any cross-service overlap exists, treat slot as fully booked
-        if overlapping > 0:
-            return customers_capacity  # forces remaining_capacity = 0
-
-        return same_service_booked
-    
+        allow_overlapping = frappe.get_value("Employee", employee, "allow_overlapping")
+        if allow_overlapping:
+            overlapping_departments = frappe.get_all(
+                "Overlapping Department",
+                filters={"parent": employee},
+                fields=["department"],
+            )
+            deps = [dep["department"] for dep in overlapping_departments] + [doc.department]
+            total_booked = frappe.db.count(
+                "Appointment",
+                filters={
+                    "name": ["!=", doc.name],
+                    "employee": employee,
+                    "status": ["in", ["Open", "Closed"]],
+                    "department": ["not in", deps],
+                    "scheduled_time": ["<",  proposed_end_str],
+                    "scheduled_end_time": [">",  proposed_start_str],
+                }
+            )
+        else:
+            total_booked = frappe.db.count(
+                "Appointment",
+                filters={
+                    "name": ["!=", doc.name],
+                    "employee": employee,
+                    "status": ["in", ["Open", "Closed"]],
+                    "department": ["!=", doc.department],
+                    "scheduled_time": ["<",  proposed_end_str],
+                    "scheduled_end_time": [">",  proposed_start_str],
+                }
+            )
+        return total_booked
 
     def check_employee_leaves():
         leaves = frappe.get_all(
@@ -163,31 +272,9 @@ def validate_availability(doc, method=None):
     check_employee_leaves()
 
     start_date = doc.scheduled_time
-
     if isinstance(start_date, str):
-        date = start_date.split(" ")[0]
-        year = int(date.split("-")[0])
-        month = int(date.split("-")[1])
-        day = int(date.split("-")[2])
+        start_date = datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S")
 
-        time = start_date.split(" ")[1]
-        hour = int(time.split(":")[0])
-        minute = int(time.split(":")[1])
-        second = int(time.split(":")[2])
-        
-        start_date = datetime(year, month, day, hour, minute, second)
-    
-    # weekday = start_date.weekday()
-    # filters = {
-    #     "department": doc.department,
-    #     "employee": doc.employee,
-    #     "weekday": str(weekday),
-    # }
-    # setting = frappe.get_all(
-    #     "Appointment Setting",
-    #     filters=filters,
-    #     fields=["name", "customers_capacity", "duration", "from", "to"]
-    # )
     service_duration = frappe.get_value("Item", doc.service, "service_duration")
     appointment_settings = frappe.get_all(
         "Service Employee",
@@ -197,7 +284,6 @@ def validate_availability(doc, method=None):
         },
         fields=["name", "customers_capacity"]
     )
-
     if not appointment_settings:
         frappe.throw(
             "No appointment settings found for this employee on the selected day."
@@ -206,28 +292,31 @@ def validate_availability(doc, method=None):
     duration_seconds = int(service_duration) if service_duration else 1800
     customers_capacity = int(appointment_settings[0].customers_capacity or 1)
 
-    concurrent_count  = get_concurrent_guests(
-        doc.employee,
-        doc.scheduled_time
-    )
+    # Step 1: Check same-department capacity
+    dep_booked_count = get_dep_concurrent_guests(doc.employee, doc.scheduled_time)
+    remaining_capacity = customers_capacity - dep_booked_count
 
-    if concurrent_count >= customers_capacity:
+    if remaining_capacity <= 0:
         frappe.throw(
-            f"""
-            This time slot is fully booked.
-
-            • Current guests: {concurrent_count}
+            f"""This time slot is fully booked.
+            • Current guests: {dep_booked_count}
             • Allowed capacity: {customers_capacity}
-
-            Please check the calendar or select another time.
-            """,
+            Please check the calendar or select another time.""",
             title="Slot Not Available",
         )
 
+    # Step 2: Check cross-department conflicts
+    diff_dep_booked_count = get_diff_dep_concurrent_guests(doc.employee, doc.scheduled_time)
+    if diff_dep_booked_count > 0:
+        frappe.throw(
+            f"""The employee is already booked in another department during this time slot.
+            • Conflicting appointments: {diff_dep_booked_count}
+            Please select another time.""",
+            title="Employee Not Available",
+        )
+
     update_status(doc, method)
-
     return True
-
 
 def after_inserting_appointment(doc, method=None):
     send_appointment_notifications(doc, method)

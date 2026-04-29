@@ -39,7 +39,14 @@ def send_appointment_reminder():
     """
     Called every day to send reminders via WhatsApp or SMS
     """
-    def send_reminder_to_whatsapp(customer_name, customer_number, appointment_time, template_name):
+    def send_reminder_to_whatsapp(
+        service,
+        customer_name,
+        customer_number,
+        appointment_date,
+        appointment_time,
+        template_name,
+    ):
         template = frappe.get_doc("WhatsApp Template", template_name)
         whatsapp_number = frappe.get_doc("WhatsApp Number", template.whatsapp_number)
 
@@ -59,7 +66,15 @@ def send_appointment_reminder():
                     "params": [
                         {
                             "type": "text",
-                            "text": f"*{customer_name}*"
+                            "text": f"{customer_name}"
+                        },
+                        {
+                            "type": "text",
+                            "text": f"{service}"
+                        },
+                        {
+                            "type": "text",
+                            "text": f"{appointment_date}"
                         },
                         {
                             "type": "text",
@@ -101,16 +116,17 @@ def send_appointment_reminder():
 
         appointments_to_remind = frappe.db.sql("""
             SELECT 
-                t1.name, 
-                t1.party, 
-                t1.customer_name, 
-                t1.customer_email, 
+                t1.name,
+                t1.service,
+                t1.customer,
+                t1.customer_name,
+                t1.customer_email,
                 t1.customer_phone_number,
                 t1.scheduled_time
             FROM 
                 `tabAppointment` AS t1
             WHERE 
-                t1.status IN ('Open', 'Confirmed')
+                t1.status IN ('Open', 'Unverified')
                 AND t1.selected_date >= %s
                 AND t1.selected_date <= %s
             ORDER BY
@@ -133,12 +149,15 @@ def send_appointment_reminder():
                 continue
             
             try:
+                service_name = frappe.get_value("Item", ap.service, "item_name_in_arabic")
                 ## Send reminder
                 if s.channel == "WhatsApp" or s.channel == "WhatsApp & SMS":
                     response = send_reminder_to_whatsapp(
+                        service_name,
                         ap.customer_name,
                         customer_number,
-                        ap.scheduled_time,
+                        ap.scheduled_time.split(" ")[0],
+                        ap.scheduled_time.split(" ")[1],
                         whatsapp_settings.default_appointment_reminder_template,
                     )
 

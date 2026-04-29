@@ -1,0 +1,36 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-04-27 10:16:22.107782",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "department"
+ ],
+ "fields": [
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Department",
+   "link_filters": "[[\"Item Group\",\"parent_item_group\",\"!=\",\"All Item Groups\"],[\"Item Group\",\"is_group\",\"=\",0]]",
+   "options": "Item Group",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-27 10:22:54.295891",
+ "modified_by": "Administrator",
+ "module": "Salon",
+ "name": "Overlapping Department",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

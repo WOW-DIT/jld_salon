@@ -177,71 +177,162 @@ def get_available_times(
         return leaves
             # frappe.throw(f"The employee is not available on {date}.")
 
+
     # def get_concurrent_guests(employee: str, check_datetime: datetime):
-    #     """Calculates the number of guests already booked concurrently with the proposed slot."""
-        
+    #     """
+    #     Counts overlapping appointments for the same employee in the same department,
+    #     regardless of service — blocking the slot if any overlap exists.
+    #     """
     #     proposed_start = check_datetime
-    #     # proposed_end = proposed_start + timedelta(seconds=duration_seconds)
+    #     proposed_end = proposed_start + timedelta(seconds=duration_seconds)
 
-    #     full_datetime_str = proposed_start.strftime("%Y-%m-%d %H:%M:%S")
+    #     proposed_start_str = proposed_start.strftime("%Y-%m-%d %H:%M:%S")
+    #     proposed_end_str = proposed_end.strftime("%Y-%m-%d %H:%M:%S")
 
-    #     # Fetch existing appointments for the employee on that date
-    #     concurrent_count = frappe.db.count(
+    #     # Find any Open appointments for this employee+department that overlap
+    #     # with [proposed_start, proposed_end), excluding the current appointment
+    #     # and excluding appointments for the exact same service (already handled by capacity)
+    #     overlapping = frappe.db.count(
     #         "Appointment",
     #         filters={
     #             "name": ["!=", current_appointment_id],
     #             "employee": employee,
-    #             "scheduled_time": full_datetime_str,
+    #             "department": department,
+    #             "service": ["!=", service_id],        # different service only
     #             "status": "Open",
+    #             "scheduled_time": ["<", proposed_end_str],    # other appt starts before our slot ends
+    #             "scheduled_end_time": [">", proposed_start_str],  # other appt ends after our slot starts
     #         }
     #     )
 
-    #     return concurrent_count
+    #     # Also count same-service bookings (original capacity logic)
+    #     same_service_booked = frappe.db.count(
+    #         "Appointment",
+    #         filters={
+    #             "name": ["!=", current_appointment_id],
+    #             "employee": employee,
+    #             "service": service_id,
+    #             "status": "Open",
+    #             "scheduled_time": proposed_start_str,
+    #         }
+    #     )
 
-    def get_concurrent_guests(employee: str, check_datetime: datetime):
+    #     # If any cross-service overlap exists, treat slot as fully booked
+    #     if overlapping > 0:
+    #         return customers_capacity  # forces remaining_capacity = 0
+
+    #     return same_service_booked
+
+    # def get_concurrent_guests(employee: str, check_datetime: datetime):
+    #     """
+    #     Counts all overlapping appointments for this employee across all services,
+    #     then returns the total so the caller can compare against customers_capacity.
+    #     """
+    #     proposed_start = check_datetime
+    #     if isinstance(proposed_start, str):
+    #         proposed_start = datetime.strptime(proposed_start, "%Y-%m-%d %H:%M:%S")
+
+    #     proposed_end = proposed_start + timedelta(seconds=duration_seconds)
+
+    #     proposed_start_str = proposed_start.strftime("%Y-%m-%d %H:%M:%S")
+    #     proposed_end_str   = proposed_end.strftime("%Y-%m-%d %H:%M:%S")
+
+    #     # Count every overlapping Open appointment for this employee,
+    #     # regardless of service — overlap means:
+    #     #   other.start < our.end  AND  other.end > our.start
+    #     total_booked = frappe.db.count(
+    #         "Appointment",
+    #         filters={
+    #             "name": ["!=", current_appointment_id],
+    #             "employee": employee,
+    #             "status": "Open",
+    #             "department": department,
+    #             "scheduled_time": ["<",  proposed_end_str],
+    #             "scheduled_end_time": [">",  proposed_start_str],
+    #         }
+    #     )
+
+    #     return total_booked
+
+    def get_dep_concurrent_guests(employee: str, check_datetime: datetime):
         """
-        Counts overlapping appointments for the same employee in the same department,
-        regardless of service — blocking the slot if any overlap exists.
+        Counts all overlapping appointments for this employee across all services,
+        then returns the total so the caller can compare against customers_capacity.
         """
         proposed_start = check_datetime
+        if isinstance(proposed_start, str):
+            proposed_start = datetime.strptime(proposed_start, "%Y-%m-%d %H:%M:%S")
+
         proposed_end = proposed_start + timedelta(seconds=duration_seconds)
 
         proposed_start_str = proposed_start.strftime("%Y-%m-%d %H:%M:%S")
-        proposed_end_str = proposed_end.strftime("%Y-%m-%d %H:%M:%S")
+        proposed_end_str   = proposed_end.strftime("%Y-%m-%d %H:%M:%S")
 
-        # Find any Open appointments for this employee+department that overlap
-        # with [proposed_start, proposed_end), excluding the current appointment
-        # and excluding appointments for the exact same service (already handled by capacity)
-        overlapping = frappe.db.count(
+        total_booked = frappe.db.count(
             "Appointment",
             filters={
                 "name": ["!=", current_appointment_id],
                 "employee": employee,
+                "status": ["in", ["Open", "Closed"]],
                 "department": department,
-                "service": ["!=", service_id],        # different service only
-                "status": "Open",
-                "scheduled_time": ["<", proposed_end_str],    # other appt starts before our slot ends
-                "scheduled_end_time": [">", proposed_start_str],  # other appt ends after our slot starts
+                "scheduled_time": ["<",  proposed_end_str],
+                "scheduled_end_time": [">",  proposed_start_str],
             }
         )
 
-        # Also count same-service bookings (original capacity logic)
-        same_service_booked = frappe.db.count(
-            "Appointment",
-            filters={
-                "name": ["!=", current_appointment_id],
-                "employee": employee,
-                "service": service_id,
-                "status": "Open",
-                "scheduled_time": proposed_start_str,
-            }
-        )
+        return total_booked
+    
+    def get_diff_dep_concurrent_guests(employee: str, check_datetime: datetime):
+        """
+        Counts all overlapping appointments for this employee across all services,
+        then returns the total so the caller can compare against customers_capacity.
+        """
+        proposed_start = check_datetime
+        if isinstance(proposed_start, str):
+            proposed_start = datetime.strptime(proposed_start, "%Y-%m-%d %H:%M:%S")
 
-        # If any cross-service overlap exists, treat slot as fully booked
-        if overlapping > 0:
-            return customers_capacity  # forces remaining_capacity = 0
+        proposed_end = proposed_start + timedelta(seconds=duration_seconds)
 
-        return same_service_booked
+        proposed_start_str = proposed_start.strftime("%Y-%m-%d %H:%M:%S")
+        proposed_end_str   = proposed_end.strftime("%Y-%m-%d %H:%M:%S")
+
+        allow_overlapping = frappe.get_value("Employee", employee, "allow_overlapping")
+        if allow_overlapping:
+            overlapping_departments = frappe.get_all(
+                "Overlapping Department",
+                filters={"parent": employee},
+                fields=["department"],
+            )
+            deps = [dep["department"] for dep in overlapping_departments] + [department]
+
+            total_booked = frappe.db.count(
+                "Appointment",
+                filters={
+                    "name": ["!=", current_appointment_id],
+                    "employee": employee,
+                    "status": ["in", ["Open", "Closed"]],
+                    "department": ["not in", deps],
+                    "scheduled_time": ["<",  proposed_end_str],
+                    "scheduled_end_time": [">",  proposed_start_str],
+                }
+            )
+        else:
+            # Count every overlapping Open appointment for this employee,
+            # regardless of service — overlap means:
+            #   other.start < our.end  AND  other.end > our.start
+            total_booked = frappe.db.count(
+                "Appointment",
+                filters={
+                    "name": ["!=", current_appointment_id],
+                    "employee": employee,
+                    "status": ["in", ["Open", "Closed"]],
+                    "department": ["!=", department],
+                    "scheduled_time": ["<",  proposed_end_str],
+                    "scheduled_end_time": [">",  proposed_start_str],
+                }
+            )
+
+        return total_booked
     
 
     ## Convert date string to datetime
@@ -257,17 +348,6 @@ def get_available_times(
     if employee_leaves:
         return {"times": [], "duration": 0}
     
-    ## Get employee shift settings
-    # filters = {
-    #     "employee": employee,
-    #     "department": department,
-    #     "weekday": str(weekday),
-    # }
-    # appointment_settings = frappe.get_all(
-    #     "Appointment Setting",
-    #     filters=filters,
-    #     fields=["name", "customers_capacity", "duration", "from", "to"]
-    # )
     service_duration = frappe.get_value("Item", service_id, "service_duration")
     appointment_settings = frappe.get_all(
         "Service Employee",
@@ -379,19 +459,32 @@ def get_available_times(
             
         # --- Integration Step 2 & 3: Check Concurrent Bookings ---
         # Determine how many guests are already booked in this specific slot
-        booked_count = get_concurrent_guests(
+        dep_booked_count = get_dep_concurrent_guests(
             employee=employee, 
             check_datetime=current_time,
         )
         
-        remaining_capacity = customers_capacity - booked_count
+        remaining_capacity = customers_capacity - dep_booked_count
+        if remaining_capacity == 0:
+            # --- Integration Step 4: Filtering ---
+            slot = {
+                "value": current_time.strftime("%H:%M:%S"),
+                "available": False
+            }
 
-        # --- Integration Step 4: Filtering ---
-        slot = {
-            "value": current_time.strftime("%H:%M:%S"),
-            "available": remaining_capacity > 0
-        }
+        else:
+            diff_dep_booked_count = get_diff_dep_concurrent_guests(
+                employee=employee, 
+                check_datetime=current_time,
+            )
+
+            slot = {
+                "value": current_time.strftime("%H:%M:%S"),
+                "available": diff_dep_booked_count == 0
+            }
+
         available_times.append(slot)
+
         
         current_time += step
         
