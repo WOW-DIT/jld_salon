@@ -3,6 +3,8 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils.csvutils import read_csv_content
+from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
 import requests
 
 
@@ -118,7 +120,34 @@ class WhatsAppMessageBroadcast(Document):
 				numbers.append(clean_number)
 
 		elif self.numbers_source == "Excel/CSV":
-			pass
+			if not self.file:
+				return numbers
+
+			if self.file.lower().endswith(".csv"):
+				_file = frappe.get_doc("File", {"file_url": self.file})
+				rows = read_csv_content(_file.get_content())
+			else:
+				rows = read_xlsx_file_from_attached_file(file_url=self.file)
+
+			if not rows:
+				return numbers
+
+			header = [str(cell).strip().lower() if cell else "" for cell in rows[0]]
+			if "number" not in header:
+				frappe.throw('Column "number" not found in the uploaded file')
+			number_col = header.index("number")
+
+			for row in rows[1:]:
+				if number_col >= len(row) or row[number_col] is None:
+					continue
+
+				raw_number = row[number_col]
+				if isinstance(raw_number, float) and raw_number.is_integer():
+					raw_number = int(raw_number)
+
+				clean_number = unify_mobile_number(str(raw_number).strip())
+				if clean_number:
+					numbers.append(clean_number)
 
 		return numbers
 

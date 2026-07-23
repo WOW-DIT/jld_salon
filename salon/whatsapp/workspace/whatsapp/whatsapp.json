@@ -13,7 +13,7 @@
  "is_hidden": 0,
  "label": "WhatsApp",
  "links": [],
- "modified": "2026-03-30 12:51:39.319771",
+ "modified": "2026-05-20 16:34:50.516845",
  "modified_by": "Administrator",
  "module": "WhatsApp",
  "name": "WhatsApp",
@@ -28,14 +28,14 @@
  "public": 1,
  "quick_lists": [
   {
-   "document_type": "WhatsApp Number",
-   "label": "WhatsApp Numbers",
+   "document_type": "WhatsApp Template",
+   "label": "WhatsApp Templates",
    "quick_list_filter": "[]"
   },
   {
-   "document_type": "WhatsApp Template",
-   "label": "WhatsApp Templates",
-   "quick_list_filter": "[[\"WhatsApp Template\",\"name\",\"=\",null,false]]"
+   "document_type": "WhatsApp Number",
+   "label": "WhatsApp Numbers",
+   "quick_list_filter": "[]"
   }
  ],
  "roles": [],

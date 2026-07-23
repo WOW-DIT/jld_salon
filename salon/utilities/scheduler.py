@@ -1,7 +1,39 @@
 import frappe
 from datetime import datetime, timedelta
-from frappe.utils import nowdate, add_days, get_datetime, date_diff, add_to_date
+from frappe.utils import today, nowdate, add_days, get_datetime, date_diff, add_to_date
 import requests
+from salon.whatsapp.utils import send_whatsapp_template
+
+def parse_scheduled_time(scheduled_time):
+    """
+    Accepts datetime object or string, returns (date_str, time_str_12h_arabic)
+    """
+    if isinstance(scheduled_time, str):
+        # Try common frappe datetime formats
+        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
+            try:
+                dt = datetime.strptime(scheduled_time, fmt)
+                break
+            except ValueError:
+                continue
+        else:
+            raise ValueError(f"Unrecognized datetime string format: {scheduled_time}")
+    elif isinstance(scheduled_time, datetime):
+        dt = scheduled_time
+    else:
+        # Handle date-only objects (no time component)
+        dt = datetime.combine(scheduled_time, datetime.min.time())
+
+    date_str = dt.strftime("%Y-%m-%d")
+
+    hour = dt.hour
+    minute = dt.minute
+    period = "صباحاً" if hour < 12 else "مساءً"
+    hour_12 = hour % 12 or 12  # convert 0 -> 12
+    time_str = f"{hour_12}:{minute:02d} {period}"
+
+    return date_str, time_str
+
 
 def unify_mobile_number(number, document):
     """
@@ -149,15 +181,19 @@ def send_appointment_reminder():
                 continue
             
             try:
+                date, time = parse_scheduled_time(ap.scheduled_time)
                 service_name = frappe.get_value("Item", ap.service, "item_name_in_arabic")
+                if not service_name:
+                    service_name = frappe.get_value("Item", ap.service, "item_name")
+                
                 ## Send reminder
                 if s.channel == "WhatsApp" or s.channel == "WhatsApp & SMS":
                     response = send_reminder_to_whatsapp(
                         service_name,
                         ap.customer_name,
                         customer_number,
-                        ap.scheduled_time.split(" ")[0],
-                        ap.scheduled_time.split(" ")[1],
+                        date,
+                        time,
                         whatsapp_settings.default_appointment_reminder_template,
                     )
 
@@ -177,3 +213,71 @@ def send_appointment_reminder():
         frappe.db.commit()
 
     return days
+
+
+def check_loyalty_expiry():
+    whatsapp_settings = frappe.get_doc("WhatsApp Settings")
+
+    one_month_later = add_days(today(), 30)
+
+    expiring_entries = frappe.get_all(
+        "Loyalty Point Entry",
+        filters={
+            "expiry_date": ["between", [today(), one_month_later]],
+            "loyalty_points": [">", 0]
+        },
+        fields=["customer", "loyalty_points", "expiry_date"]
+    )
+
+    for entry in expiring_entries:
+        customer = frappe.get_value(
+            "customer",
+            entry.customer,
+            ["mobile_no", "customer_name"],
+            as_dict=True,
+        )
+
+        total_points = frappe.db.sql("""
+            SELECT SUM(loyalty_points)
+            FROM `tabLoyalty Point Entry`
+            WHERE customer = %s AND loyalty_points > 0
+        """, (entry.customer,))[0][0] or 0
+
+        send_whatsapp_template(
+            customer_number=customer.mobile_no,
+            template_name=whatsapp_settings.default_royalty_points_expiry_template,
+            components=[
+                {
+                    "section_name": "body",
+                    "params": [
+                        {
+                            "type": "text",
+                            "text": customer.customer_name.split(" ")
+                        },
+                        {
+                            "type": "text",
+                            "text": str(int(total_points))
+                        },
+                        {
+                            "type": "text",
+                            "text": str(int(entry.loyalty_points))
+                        },
+                        {
+                            "type": "text",
+                            "text": str(entry.expiry_date)
+                        },
+                    ]
+                },
+            ]
+        )
+        # frappe.sendmail(
+        #     recipients=[frappe.db.get_value("Customer", entry.customer, "email_id")],
+        #     subject="Your Loyalty Points Are Expiring Soon!",
+        #     message=f"""
+        #         Dear {entry.customer},<br><br>
+        #         You have <b>{entry.loyalty_points} loyalty points</b> expiring on 
+        #         <b>{entry.expiry_date}</b>.<br>
+        #         Use them before they expire!<br><br>
+        #         Thank you.
+        #     """
+        # )

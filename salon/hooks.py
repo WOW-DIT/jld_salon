@@ -145,10 +145,11 @@ doc_events = {
 	# 	"on_trash": "method"
 	# }
     "Payment Entry": {
-        "on_submit": "salon.events.add_customer_deposit"
+        "on_submit": "salon.events.on_payment_submit"
     },
     "POS Invoice": {
-        "after_insert": "salon.events.get_advances",
+        "before_submit": "salon.events.get_advances",
+        "validate": "salon.events.pos_invoice_validate",
         "on_submit": "salon.events.deduct_deposit_balance",
     },
     "Sales Invoice": {
@@ -156,7 +157,7 @@ doc_events = {
         "before_insert": "salon.events.fetch_customer",
     },
     "Appointment": {
-        "validate": "salon.events.validate_availability",
+        "validate": "salon.events.validate_appointment",
         "after_insert": "salon.events.after_inserting_appointment",
         # "after_insert": "salon.events.send_appointment_notifications",
     },
@@ -165,6 +166,13 @@ doc_events = {
 	},
 	"Customer": {
 		"before_insert": "salon.events.before_inserting_customer",
+	},
+    "Leave Application": {
+        "on_submit": "salon.events.on_submit_leave",
+	}
+	,
+    "employee": {
+        # "validate": "salon.events.on_employee_save"
 	}
 }
 
@@ -173,8 +181,14 @@ doc_events = {
 
 scheduler_events = {
     "cron": {
-		"0 */12 * * *": [
-			"salon.utilities.scheduler.send_appointment_reminder",
+        "0 8 * * *": [
+			"salon.utilities.scheduler.check_loyalty_expiry",
+		],
+		# "0 */12 * * *": [
+		# 	"salon.utilities.scheduler.send_appointment_reminder",
+		# ],
+		"*/15 * * * *": [
+			"salon.utilities.scheduler_fixed.send_appointment_reminder"
 		],
 		# "0/30 * * * *": [
 		# 	"erpnext.utilities.doctype.video.video.update_youtube_data",

@@ -1,6 +1,9 @@
 import frappe
 from datetime import datetime, timedelta
 from salon.whatsapp.utils import send_whatsapp_template
+^X
+
+
 from frappe import _
 from frappe.utils import flt
 
@@ -8,6 +11,7 @@ from frappe.utils import flt
 ### on_submit
 def on_payment_submit(doc, method=None):
     if doc.party_type == "Customer" and doc.is_customer_deposit:
+exit
         if doc.payment_type == "Receive":
             add_customer_deposit(doc, method)
 
@@ -212,10 +216,9 @@ def deduct_deposit_balance(doc, method=None):
 
             cust.deposit_balance -= advance_amount
             cust.save(ignore_permissions=True)
+        # if doc.doctype == "POS Invoice":
 
-    if doc.doctype == "POS Invoice":
-        send_review_messages(doc, method)
-        send_invoice(doc, method)
+    # send_review_messages(doc, method)
 
 
         # Create GL movement if you want accounting entry
@@ -239,10 +242,6 @@ def validate_appointment(doc, method=None):
     send_cancellation_message(doc, method)
 
 def validate_availability(doc, method=None):
-
-    if doc.status in ["Cancelled", "Closed", "Waiting"] or doc.workflow_state in ["Cancelled", "Attended"]:
-        return
-        
     def get_dep_concurrent_guests(employee: str, check_datetime: datetime):
         """
         Counts all overlapping appointments for this employee in the same department.
@@ -514,108 +513,19 @@ def send_cancellation_message(doc, method):
 
     
 def send_review_messages(doc, method=None):
-    try:
-        cust = frappe.get_doc("Customer", doc.customer)
-        
-        response = send_whatsapp_template(
-            customer_number=cust.mobile_no,
-            template_name="service_rating_ar",
-            components=[
-                {
-                    "section_name": "body",
-                    "params": [
-                        {
-                            "type": "text",
-                            "text": cust.customer_name
-                        },
-                    ]
-                },
-            ]
-        )
+    # if not doc.invoice:
+    #     frappe.throw(_("Invoice is required before submitting"))
+    frappe.log_error(
+        title="Service Review",
+        message= doc.name
+    )
 
-        # frappe.log_error(
-        #     title="Service Review",
-        #     message= doc.name
-        # )
-
-        # for service in doc.items:
-        #     if not service.employee:
-        #         continue
-        #     review = frappe.new_doc("Service Review")
-        #     review.reference_type = doc.doctype
-        #     review.order_id = doc.name
-        #     review.customer = doc.customer
-        #     review.service = service.item_code
-        #     review.employee = service.employee
-        #     review.insert(ignore_permissions=True)
-    except Exception as e:
-        note = frappe.new_doc("Note")
-        note.public = 1
-        note.title = "WHATSAPPPPPP"
-        note.content = str(e)
-        note.insert(ignore_permissions=True)
-        frappe.db.commit()
-
-        frappe.log_error(
-            title="Service Review Error",
-            message=str(e)
-        )
-
-
-def send_invoice(doc, method=None):
-    try:
-        whatsapp_settings = frappe.get_doc("WhatsApp Settings")
-        cust = frappe.get_doc("Customer", doc.customer)
-
-        pdf_content = frappe.get_print(
-            doc.doctype,
-            doc.name,
-            "POS Invoice V2",
-            as_pdf=True,
-        )
-
-        file_doc = frappe.get_doc({
-            "doctype": "File",
-            "file_name": f"Invoice-{doc.name}.pdf",
-            "content": pdf_content,
-            "attached_to_doctype": doc.doctype,
-            "attached_to_name": doc.name,
-            "is_private": 0,
-        })
-        file_doc.insert(ignore_permissions=True)
-
-        file_url = frappe.utils.get_url() + file_doc.file_url
-
-        send_whatsapp_template(
-            customer_number=cust.mobile_no,
-            template_name=whatsapp_settings.default_invoice_template,
-            components=[
-                {
-                    "section_name": "header",
-                    "params": [
-                        {
-                            "type": "document",
-                            "file_url": file_url,
-                            "file_name": f"Invoice-{doc.posting_date}.pdf",
-                        },
-                    ]
-                },
-            ]
-        )
-
-    except Exception as e:
-        note = frappe.new_doc("Note")
-        note.public = 1
-        note.title = "WHATSAPPPPPP"
-        note.content = str(e)
-        note.insert(ignore_permissions=True)
-        frappe.db.commit()
-
-        frappe.log_error(
-            title="Send Invoice Error",
-            message=str(e)
-        )
-    
+    for service in doc.items:
+        review = frappe.new_doc("Service Review")
+        review.order_id = doc.name
+        review.service = service.item_name
+        review.employee = service.employee
+        review.insert(ignore_permissions=True)
 
 ##### Customer
 def before_inserting_customer(doc, method=None):
@@ -641,8 +551,3 @@ def on_submit_leave(doc, method=None):
             "status",
             "Reschedule",
         )
-
-
-## Employee
-def on_employee_save(doc, method=None):
-    doc.first_last_name = f"{doc.first_name} {doc.last_name}"

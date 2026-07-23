@@ -17,13 +17,17 @@
   "default_appointment_reminder_template",
   "column_break_eteg",
   "default_appointment_template",
-  "default_deposit_confirmation_template"
+  "default_deposit_confirmation_template",
+  "default_appointment_cancelation_template",
+  "default_royalty_points_expiry_template",
+  "default_royalty_points_entry_template"
  ],
  "fields": [
   {
    "fieldname": "api_key",
    "fieldtype": "Password",
    "label": "API Key",
+   "read_only_depends_on": "eval: frappe.session.user !== \"Administrator\"",
    "reqd": 1
   },
   {
@@ -100,13 +104,32 @@
    "label": "Default Deposit Confirmation Template",
    "options": "WhatsApp Template",
    "reqd": 1
+  },
+  {
+   "fieldname": "default_appointment_cancelation_template",
+   "fieldtype": "Link",
+   "label": "Default Appointment Cancelation Template",
+   "options": "WhatsApp Template",
+   "reqd": 1
+  },
+  {
+   "fieldname": "default_royalty_points_expiry_template",
+   "fieldtype": "Link",
+   "label": "Default Royalty Points Expiry Template",
+   "options": "WhatsApp Template"
+  },
+  {
+   "fieldname": "default_royalty_points_entry_template",
+   "fieldtype": "Link",
+   "label": "Default Royalty Points Entry Template",
+   "options": "WhatsApp Template"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-04-01 11:41:22.902843",
+ "modified": "2026-06-21 16:36:42.548150",
  "modified_by": "Administrator",
  "module": "WhatsApp",
  "name": "WhatsApp Settings",

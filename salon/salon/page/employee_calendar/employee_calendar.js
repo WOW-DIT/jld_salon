@@ -137,7 +137,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 		/* ── Outer border wrapper ── */
 		#emp-cal-outer {
 			flex: 1;
-			min-height: 0;
+			min-height: 600px;
 			border: 1px solid var(--border-color);
 			border-radius: var(--border-radius-lg);
 			overflow: hidden;
@@ -163,6 +163,9 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 			background: transparent !important;
 			width: ${TIME_AXIS_W}px !important;
 			min-width: ${TIME_AXIS_W}px !important;
+		}
+		.fc-event-resizable {
+			height: 100% !important;
 		}
 		.fc-timegrid-slot-label {
 			font-size: 0.72rem !important;
@@ -275,6 +278,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 						<select id="emp-cal-emp-select" multiple></select>
 						<button class="btn btn-xs btn-default" id="emp-cal-toggle-all">${__("All")}</button>
 						<button class="btn btn-xs btn-primary" id="emp-cal-apply">${__("Apply")}</button>
+						<button class="btn btn-xs btn-primary" id="emp-cal-clear-filter">${__("Clear Filter")}</button>
 					</div>
 				</div>
 			</div>
@@ -296,10 +300,12 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 	let allEmployees = [];
 	let allSelected = true;
 	let employeeShifts = {};
-	// _suppressDateChange: prevents datesSet → dateControl.set_value → applyFilters loop
 	let _suppressDateChange = false;
 	let visibleEmployees = [];
 	let employeeEventCounts = {};
+	let employeeLeaves = {};
+	let currentCalDate = frappe.datetime.get_today();
+
 
 	// ── Frappe Controls ───────────────────────────────────────────────────────
 	function makeControls() {
@@ -311,7 +317,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 				onchange: () => {
 					if (_suppressDateChange) return;
 					const v = dateControl.get_value();
-					if (v) navigateToDate(v);
+					if (v) { pushFiltersToUrl(); navigateToDate(v); }
 				}
 			},
 			parent: document.getElementById("emp-cal-date-wrap"),
@@ -328,7 +334,9 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 				placeholder: __("Mobile Number, Customer Name, MRN"),
 				onchange: () => {
 					selectedCustomer = customerControl.get_value() || null;
-					if (calendarInstance) calendarInstance.refetchEvents();
+					window.open(`/app/appointment/view/list?customer=${selectedCustomer}`, "_blank");
+					
+					// customerControl.set_value("")
 				}
 			},
 			parent: document.getElementById("emp-cal-customer-wrap"),
@@ -353,7 +361,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 				},
 				onchange: () => {
 					selectedDept = deptControl.get_value() || null;
-					serviceControl.set_value("").then(() => applyFilters());
+					serviceControl.set_value("").then(() => { pushFiltersToUrl(); applyFilters(); });
 				}
 			},
 			parent: document.getElementById("emp-cal-dept-wrap"),
@@ -379,6 +387,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 				},
 				onchange: () => {
 					selectedService = serviceControl.get_value() || null;
+					pushFiltersToUrl();
 					applyFilters();
 				}
 			},
@@ -394,21 +403,26 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 		employees.forEach((emp) => {
 			const opt = document.createElement("option");
 			opt.value = emp.name;
-			opt.textContent = emp.employee_name;
+			opt.textContent = `${emp.first_name} ${emp.last_name}`;
 			opt.selected = selectedIds ? selectedIds.includes(emp.name) : true;
 			sel.appendChild(opt);
 		});
 	}
 
 	// ── Build employeeShifts map from employee list ───────────────────────────
-	function buildShifts(emps) {
+	function buildShifts(emps, calDate) {
 		employeeShifts = {};
+		employeeLeaves = {};
+		currentCalDate = calDate;
 		emps.forEach(emp => {
+			const leave    = emp.leave || null;
+			const isActive = leave && leave.from_date <= calDate && calDate <= leave.to_date;
 			employeeShifts[emp.name] = {
-				unavailable: emp.unavailable || false,
+				unavailable: emp.unavailable || isActive,
 				start: emp.shift_start,
 				end:   emp.shift_end,
 			};
+			employeeLeaves[emp.name] = leave;
 		});
 	}
 
@@ -453,7 +467,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 
 				// IMPORTANT: update shifts BEFORE refetchEvents so the events
 				// callback has the correct data when it runs
-				buildShifts(emps);
+				buildShifts(emps, newDate);
 
 				if (calendarInstance) {
 					_suppressDateChange = true;
@@ -490,6 +504,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 	function initCalendar(emps, calDate) {
 		visibleEmployees = emps;
 		calDate = calDate || frappe.datetime.get_today();
+		debugger
 
 		const calEl    = document.getElementById("emp-cal-fc");
 		const outerEl  = document.getElementById("emp-cal-outer");
@@ -504,7 +519,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 
 		const resources = visibleEmployees.map((emp) => ({
 			id: emp.name,
-			title: emp.employee_name,
+			title: `${emp.first_name} ${emp.last_name}`,
 			image: emp.image || null,
 			eventCounts: { total: 0, Open: 0, Closed: 0, Cancelled: 0 },
 		}));
@@ -512,12 +527,14 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 		calendarInstance = new FullCalendar.Calendar(calEl, {
 			schedulerLicenseKey: "GPL-My-Project-Is-Open-Source",
 			initialView: "resourceTimeGridDay",
+			initialDate: calDate,
 			direction: frappe.boot.lang === "ar" ? "rtl" : "ltr",
 			height: outerEl.clientHeight,
 			nowIndicator: true,
 			allDaySlot: false,
 			selectable: true,
 			selectMirror: true,
+			defaultTimedEventDuration: "01:00:00",
 			slotMinTime: "11:00:00",
 			slotMaxTime: "22:00:00",
 			slotDuration: "00:15:00",
@@ -530,27 +547,12 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 			stickyFooterScrollbar: false,
 			resources,
 
-			// resourceLabelContent(arg) {
-			// 	const name  = arg.resource.title;
-			// 	const image = arg.resource.extendedProps.image;
-			// 	const counts = arg.resource.extendedProps.eventCounts || { total: 0, Open: 0, Closed: 0, Cancelled: 0 };
-
-			// 	let avatarHtml;
-			// 	if (image) {
-			// 		avatarHtml = `<img class="emp-avatar" src="${frappe.utils.escape_html(image)}" alt="" />`;
-			// 	} else {
-			// 		const initials = name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("");
-			// 		avatarHtml = `<span class="emp-avatar-placeholder">${initials}</span>`;
-			// 	}
-			// 	const el = document.createElement("div");
-			// 	el.style.cssText = "display:flex;align-items:center;gap:6px;justify-content:center;width:100%;overflow:hidden;";
-			// 	el.innerHTML = `${avatarHtml}<span style="overflow:hidden;text-overflow:ellipsis;">${frappe.utils.escape_html(name)}</span>`;
-			// 	return { domNodes: [el] };
-			// },
 			resourceLabelContent(arg) {
 				const name  = arg.resource.title;
 				const image = arg.resource.extendedProps.image;
 				const counts = employeeEventCounts[arg.resource.id] || { total: 0, Open: 0, Closed: 0, Cancelled: 0 };
+				const leave = employeeLeaves[arg.resource.id] || null;
+				const isActive = leave && leave.from_date <= currentCalDate && currentCalDate <= leave.to_date;
 
 				let avatarHtml;
 				if (image) {
@@ -582,6 +584,22 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 					background:#6366f1;color:#fff;
 				">${counts.total}</span>`;
 
+				let leaveBadge = "";
+				if (leave) {
+					const label = isActive
+						? `🚫 ${__("On Leave until")} ${leave.to_date}`
+						: `🏖️ ${__("Leave")} ${leave.from_date} → ${leave.to_date}`;
+					const bg    = isActive ? "#fee2e2" : "#fef9c3";
+					const color = isActive ? "#b91c1c" : "#92400e";
+					leaveBadge = `<div title="${label}" style="
+						font-size:0.62rem;font-weight:600;
+						background:${bg};color:${color};
+						border-radius:8px;padding:1px 6px;
+						white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+						max-width:100%;margin-top:2px;
+					">${label}</div>`;
+				}
+
 				const el = document.createElement("div");
 				el.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;padding:4px 2px;box-sizing:border-box;";
 				el.innerHTML = `
@@ -592,6 +610,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 					<div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">
 						${statusDots}
 					</div>
+					${leaveBadge}
 				`;
 				return { domNodes: [el] };
 			},
@@ -616,7 +635,6 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 							title: "customer_name",
 						}),
 						filters: JSON.stringify([]),
-						customer: customer,
 						department: department,
 						service: service,
 					},
@@ -628,8 +646,8 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 								id: e.name,
 								resourceId: e.employee,
 								title: e.title || e.customer_name || "",
-								start: (e.scheduled_time || "").replace(" ", "T"),
-								end:   (e.scheduled_end_time || "").replace(" ", "T"),
+								start: parseEventDate(e.scheduled_time),
+								end: parseEventDate(e.scheduled_end_time),
 								backgroundColor: e.color || "#5e64ff",
 								borderColor:     e.color || "#5e64ff",
 								textColor: getContrastColor(e.color),
@@ -643,8 +661,11 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 									phone: e.customer_phone_number,
 									employee: e.employee,
 									item_group: e.department,
+									is_bride: e.is_bride,
 									special_request: e.special_request || false,
 									paid_deposit: e.paid_deposit || false,
+									has_unpaid_invoice: e.has_unpaid_invoice || false,
+									unpaid_amount: e.unpaid_amount || 0,
 								},
 							};
 						});
@@ -721,14 +742,21 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 				if (info.event.display === "background") return;
 				const p = info.event.extendedProps;
 
-				const groupStrips = {
-					"باقات العرائس": "#54008d"
-				}
-		
-				const stripColor = groupStrips[p.item_group];
-				if (stripColor) {
+				if (p.is_bride === 1) {
+					const stripColor = "#54008d"
+					
 					info.el.style.setProperty("border-left", `8px solid ${stripColor}`, "important");
+				} else {
+					const groupStrips = {
+						"باقات العرائس": "#54008d"
+					}
+			
+					const stripColor = groupStrips[p.item_group];
+					if (stripColor) {
+						info.el.style.setProperty("border-left", `8px solid ${stripColor}`, "important");
+					}
 				}
+
 				if (p.paid_deposit) {					
 					info.el.style.setProperty("border-right", `8px solid green`, "important");
 
@@ -748,6 +776,30 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 					info.el.appendChild(badge);
 				}
 
+				if (p.has_unpaid_invoice) {
+					const unpaidBadge = document.createElement("span");
+					unpaidBadge.textContent = "⚠";
+					unpaidBadge.title = __("Unpaid Sales Invoice");
+					unpaidBadge.style.cssText = `
+						position: absolute;
+						top: 2px;
+						${isRTL ? "right" : "left"}: 3px;
+						font-size: 13px;
+						line-height: 1;
+						background: #dc2626;
+						color: #fff;
+						border-radius: 50%;
+						width: 15px;
+						height: 15px;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						pointer-events: none;
+					`;
+					info.el.style.position = "relative";
+					info.el.appendChild(unpaidBadge);
+				}
+
 				// ── Tooltip (unchanged) ────────────────────────────────
 				$(info.el).tooltip({
 					title: [
@@ -757,6 +809,7 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 						p.status   ? `<span class="indicator ${statusIndicatorClass(p.status)}">${p.status}</span>` : "",
 						p.special_request ? `<span style="color:#f59e0b">⭐ ${p.employee}</span>` : "",
 						p.paid_deposit ? `<span>$ Paid</span>` : "",
+						p.has_unpaid_invoice ? `<span style="color:#f87171">⚠ ${__("Unpaid")}: ${format_currency(p.unpaid_amount)}</span>` : "",
 					].filter(Boolean).join("<br>"),
 					html: true, placement: "top", container: "body", trigger: "hover",
 				});
@@ -766,16 +819,24 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 				if (info.event.display === "background") return;
 				info.jsEvent.preventDefault();
 				const url = info.event.extendedProps.url;
-				if (url) window.location.href = url;
-				else frappe.set_route("Form", "Appointment", info.event.id);
+
+				if (url) {
+					window.open(url, "_blank");
+				} else {
+					const route = `/app/appointment/${info.event.id}`;
+					window.open(route, "_blank");
+				}
 			},
 
 			// datesSet fires when the calendar's visible date changes (prev/next/today).
 			// We suppress it during programmatic gotoDate calls to avoid loops.
 			datesSet(info) {
 				document.getElementById("emp-cal-title").textContent = info.view.title;
+				
 				if (_suppressDateChange) return;
-
+				
+				pushFiltersToUrl();
+				
 				const newDate = info.startStr.split("T")[0];
 				if (dateControl?.get_value() === newDate) return;
 
@@ -906,14 +967,14 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 
 		// Build shifts BEFORE render so the events callback has correct data
 		// on the very first fetch.
-		buildShifts(visibleEmployees);
+		buildShifts(visibleEmployees, calDate);
 
 		calendarInstance.render();
 
 		// Navigate to the requested date without triggering datesSet → navigateToDate
-		_suppressDateChange = true;
-		calendarInstance.gotoDate(calDate);
-		setTimeout(() => { _suppressDateChange = false; }, 0);
+		// _suppressDateChange = true;
+		// calendarInstance.gotoDate(calDate);
+		// setTimeout(() => { _suppressDateChange = false; }, 0);
 
 		// ── Toolbar buttons ───────────────────────────────────────────────────
 		// prev/next/today let the calendar move itself; datesSet handles the rest.
@@ -932,6 +993,21 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 			initCalendar(filtered, d);
 		};
 
+		document.getElementById("emp-cal-clear-filter").onclick = () => {
+			selectedCustomer = null;
+			selectedDept     = null;
+			selectedService  = null;
+
+			Promise.all([
+				customerControl.set_value(""),
+				deptControl.set_value(""),
+				serviceControl.set_value(""),
+			]).then(() => {
+				pushFiltersToUrl();
+				applyFilters();
+			});
+		};
+
 		// ResizeObserver
 		resizeObserver = new ResizeObserver(() => {
 			const h = outerEl.clientHeight;
@@ -948,12 +1024,72 @@ frappe.pages["employee-calendar"].on_page_load = function (wrapper) {
 		makeControls();
 		applyFilters();
 
+		// // Restore filters from URL
+		// const saved = getFiltersFromUrl();
+
+		// // const setDate     = saved.date     ? dateControl.set_value(saved.date)         : Promise.resolve();
+		// const setCustomer = saved.customer ? customerControl.set_value(saved.customer) : Promise.resolve();
+		// const setDept     = saved.dept     ? deptControl.set_value(saved.dept)         : Promise.resolve();
+		// const setService  = saved.service  ? serviceControl.set_value(saved.service)   : Promise.resolve();
+
+		// if (saved.customer) selectedCustomer = saved.customer;
+		// if (saved.dept)     selectedDept     = saved.dept;
+		// if (saved.service)  selectedService  = saved.service;
+
+		// Promise.all([setCustomer, setDept, setService]).then(() => {
+		// 	applyFilters();
+		// });
+
 		document.getElementById("emp-cal-fc").addEventListener("mousedown", () => {
 			$(".tooltip").remove();
 		}, true);
 	});
 
 	// ── Helpers ───────────────────────────────────────────────────────────────
+	function parseEventDate(raw) {
+		if (!raw) return null;
+		// Detect DD-MM-YYYY HH:MM:SS  →  convert to ISO
+		const dmyMatch = raw.match(/^(\d{2})-(\d{2})-(\d{4})\s(\d{2}:\d{2}:\d{2})$/);
+		if (dmyMatch) {
+			const [, dd, mm, yyyy, time] = dmyMatch;
+			return `${yyyy}-${mm}-${dd}T${time}`;
+		}
+		// Already YYYY-MM-DD HH:MM:SS
+		return raw.replace(" ", "T");
+	}
+
+	// ── URL filter persistence ────────────────────────────────────────────────
+	function pushFiltersToUrl() {
+		const date     = dateControl?.get_value();
+		const customer = customerControl?.get_value();
+		const dept     = deptControl?.get_value();
+		const service  = serviceControl?.get_value();
+
+		const params = new URLSearchParams();
+		if (date)     params.set("date",     date);
+		if (customer) params.set("customer", customer);
+		if (dept)     params.set("dept",     dept);
+		if (service)  params.set("service",  service);
+
+		const paramStr = params.toString();
+		// Store everything inside the hash so Frappe's router never strips it
+		const newHash  = "employee-calendar" + (paramStr ? "?" + paramStr : "");
+		history.replaceState(null, "", window.location.pathname + "#" + newHash);
+	}
+
+	function getFiltersFromUrl() {
+		// Hash looks like:  #employee-calendar?date=2025-01-01&dept=...
+		const hash     = window.location.hash.slice(1); // strip leading #
+		const qIdx     = hash.indexOf("?");
+		const params   = new URLSearchParams(qIdx >= 0 ? hash.slice(qIdx + 1) : "");
+		return {
+			date:     params.get("date")     || null,
+			customer: params.get("customer") || null,
+			dept:     params.get("dept")     || null,
+			service:  params.get("service")  || null,
+		};
+	}
+
 	function getContrastColor(hex) {
 		if (!hex) return "#fff";
 		const c = hex.replace("#", "");

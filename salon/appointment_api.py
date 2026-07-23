@@ -1,6 +1,7 @@
 import frappe
 from datetime import datetime, timedelta, time
 import json
+from frappe.utils import today
 
 # from frappe.desk.calendar import get_events as _get_base_events
 
@@ -119,23 +120,6 @@ def get_appointment_events(doctype, start, end, field_map, filters=None, fields=
 
     return events
 
-
-@frappe.whitelist()
-def update_schedulers():
-    doc = frappe.new_doc(
-        "Scheduled Job Type"
-    )
-    doc.method = "salon.utilities.scheduler.send_appointment_reminder"
-    doc.cron_format = "0 */12 * * *"
-    doc.frequency = "Cron"
-    doc.insert(ignore_permissions=True)
-    
-    frappe.db.commit()
-    dd = frappe.get_all(doc.doctype, filters={"method": doc.method})
-    return dd
-    
-    # return frappe.db.get_all("Scheduled Job Type", filters={"method": "scheduler.send_appointment_reminder"})
-    # sync_jobs()
 
 @frappe.whitelist()
 def get_available_times(
@@ -273,7 +257,7 @@ def get_available_times(
             filters={
                 "name": ["!=", current_appointment_id],
                 "employee": employee,
-                "status": ["in", ["Open", "Closed"]],
+                "status": ["not in", ["Cancelled"]],
                 "department": department,
                 "scheduled_time": ["<",  proposed_end_str],
                 "scheduled_end_time": [">",  proposed_start_str],
@@ -310,7 +294,7 @@ def get_available_times(
                 filters={
                     "name": ["!=", current_appointment_id],
                     "employee": employee,
-                    "status": ["in", ["Open", "Closed"]],
+                    "status": ["not in", ["Cancelled"]],
                     "department": ["not in", deps],
                     "scheduled_time": ["<",  proposed_end_str],
                     "scheduled_end_time": [">",  proposed_start_str],
@@ -325,7 +309,7 @@ def get_available_times(
                 filters={
                     "name": ["!=", current_appointment_id],
                     "employee": employee,
-                    "status": ["in", ["Open", "Closed"]],
+                    "status": ["not in", ["Cancelled"]],
                     "department": ["!=", department],
                     "scheduled_time": ["<",  proposed_end_str],
                     "scheduled_end_time": [">",  proposed_start_str],
@@ -333,6 +317,15 @@ def get_available_times(
             )
 
         return total_booked
+    
+    service_id = service_id.strip()
+    if not frappe.get_value("Item", service_id):
+        service_id = frappe.get_value("Item", {"item_name_in_arabic": ["like", f"%{service_id}%"]})
+
+        if not service_id:
+            service_id = frappe.get_value("Item", {"item_name": ["like", f"%{service_id}%"]})
+
+    
     
 
     ## Convert date string to datetime
@@ -465,7 +458,7 @@ def get_available_times(
         )
         
         remaining_capacity = customers_capacity - dep_booked_count
-        if remaining_capacity == 0:
+        if remaining_capacity <= 0:
             # --- Integration Step 4: Filtering ---
             slot = {
                 "value": current_time.strftime("%H:%M:%S"),
@@ -597,7 +590,7 @@ def attend_all(date, customer):
             frappe.set_value("Appointment", app.name, "workflow_state", "Attended")
             frappe.set_value("Appointment", app.name, "status", "Closed")
 
-            frappe.db.commit()
+        frappe.db.commit()
 
         return {
             "success": True
@@ -607,3 +600,84 @@ def attend_all(date, customer):
         return {
             "success": False
         }
+
+
+@frappe.whitelist()
+def wait_all(date, customer):
+    try:
+        apps = frappe.get_list(
+            "Appointment",
+            filters={
+                "selected_date": date,
+                "customer": customer,
+                "status": ["in", ["Open"]],
+            }
+        )
+        for app in apps:
+            frappe.set_value("Appointment", app.name, "status", "Waiting")
+
+        frappe.db.commit()
+
+        return {
+            "success": True
+        }
+    
+    except Exception as e:
+        return {
+            "success": False
+        }
+    
+
+@frappe.whitelist()
+def cancel_all(date, customer):
+    try:
+        apps = frappe.get_list(
+            "Appointment",
+            filters={
+                "selected_date": date,
+                "customer": customer,
+                "status": ["in", ["Open", "Waiting"]],
+            }
+        )
+        for app in apps:
+            frappe.set_value("Appointment", app.name, "workflow_state", "Cancelled")
+            frappe.set_value("Appointment", app.name, "status", "Cancelled")
+
+        frappe.db.commit()
+
+        return {
+            "success": True
+        }
+    
+    except Exception as e:
+        return {
+            "success": False
+        }
+    
+
+@frappe.whitelist()
+def get_customer_cart(customer: str):
+    now_date = today()
+    cart_id = frappe.db.get_value(
+        "Customer Cart",
+        filters=[
+            ["customer", "=", customer],
+            ["creation", ">=", now_date + " 00:00:00"],
+            ["creation", "<", now_date + " 23:59:59"],
+            ["docstatus", "=", 0],
+        ],
+        fieldname="name",
+    )
+
+    if not cart_id:
+        return {
+            "success": False
+        }
+    
+    cart = frappe.get_doc("Customer Cart", cart_id)
+    items = cart.services
+
+    return {
+        "success": True,
+        "items": items
+    }

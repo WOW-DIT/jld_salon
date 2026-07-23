@@ -2,95 +2,119 @@ import json
 from datetime import datetime, timedelta
 import frappe
 
-# @frappe.whitelist()
-# def get_employees(service=None, date=None):
-#     filters = {
-#         "designation": ["in", ["مصففة شعر", "فنية تجميل"]],
-#         "status": "Active",
-#     }
-
-#     if service:
-#         employees = frappe.get_all(
-#             "Service Employee",
-#             filters={"parent": service},
-#             fields=["employee"],
-#         )
-#         emp_names = [emp.employee for emp in employees]
-#         filters["name"] = ["in", emp_names]
-
-#     all_employees = frappe.get_all(
-#         "Employee",
-#         filters=filters,
-#         fields=["name", "employee_name", "image"],
-#     )
-
-#     if date:
-#         result = []
-#         for emp in all_employees:
-#             leaves = check_employee_leaves(emp.name, date)
-#             if leaves:
-#                 continue  # filter out employees on leave
-
-#             shift = employee_shift(emp.name, date)
-#             emp["shift_start"] = str(shift["start_time"]) if shift.get("start_time") else None
-#             emp["shift_end"]   = str(shift["end_time"])   if shift.get("end_time")   else None
-#             emp["unavailable"] = not shift.get("start_time")
-#             result.append(emp)
-#         return result
-
-#     return all_employees
-
 @frappe.whitelist()
-def get_employees(service=None, date=None, department=None):
+def get_employees(service=None, date=None, department=None, include_assistants=False):
+    designations = ["مصففة شعر", "فنية تجميل"]
+    if include_assistants:
+        designations.append("مساعدة اخصائية")
+
     filters = {
-        "designation": ["in", ["مصففة شعر", "فنية تجميل"]],
+        "designation": ["in", designations],
         "status": "Active",
     }
- 
+
+    assistants = frappe.get_list(
+        "Employee",
+        filters={"designation": "مساعدة اخصائية"}
+    )
+    assistant_names = [a.name for a in assistants]
+
     if service:
-        # Service takes priority — ignore department filter
         employees = frappe.get_all(
             "Service Employee",
             filters={"parent": service},
             fields=["employee"],
         )
         emp_names = [emp.employee for emp in employees]
+        if include_assistants:
+            emp_names = emp_names + assistant_names
         filters["name"] = ["in", emp_names]
- 
+
     elif department:
-        # No service selected — filter by department via Department Employee child table
         dept_employees = frappe.get_all(
             "Department Employee",
             filters={"parent": department},
             fields=["employee"],
         )
         emp_names = [emp.employee for emp in dept_employees]
+        if include_assistants:
+            emp_names = emp_names + assistant_names
         filters["name"] = ["in", emp_names]
- 
+
+    elif include_assistants:
+        filters["name"] = ["in", assistant_names]
+
     all_employees = frappe.get_all(
         "Employee",
         filters=filters,
-        fields=["name", "employee_name", "image"],
+        fields=["name", "first_name", "last_name", "employee_name", "image"],
     )
- 
+
     if date:
         result = []
         for emp in all_employees:
-            leaves = check_employee_leaves(emp.name, date)
-            if leaves:
-                continue  # filter out employees on leave
- 
+            employee_leave = get_next_leaves(emp.name, date)
+            emp["leave"] = employee_leave
+
             shift = employee_shift(emp.name, date)
             emp["shift_start"] = str(shift["start_time"]) if shift.get("start_time") else None
             emp["shift_end"]   = str(shift["end_time"])   if shift.get("end_time")   else None
             emp["unavailable"] = not shift.get("start_time")
+
             result.append(emp)
         return result
- 
+
     return all_employees
 
+def get_next_leaves(employee: str, from_date=None):
+    if not from_date:
+        from_date = frappe.utils.today()
+
+    candidates = []
+
+    leaves = frappe.get_all(
+        "Leave Application",
+        filters={
+            "employee": employee,
+            "status": "Approved",
+            "docstatus": 1,
+            "to_date": [">=", from_date],
+        },
+        fields=["from_date", "to_date"],
+    )
+    for row in leaves:
+        candidates.append({
+            "from_date": row.from_date,
+            "to_date":   row.to_date,
+        })
+
+    unavail_times = frappe.get_all(
+        "Employee Appointment Times",
+        filters={
+            "employee": employee,
+            "is_unavailable": 1,
+            "end_date": [">=", from_date],
+        },
+        fields=["start_date as from_date", "end_date as to_date"],
+    )
+    for row in unavail_times:
+        candidates.append({
+            "from_date": row.from_date,
+            "to_date":   row.to_date,
+        })
+
+    if not candidates:
+        return None
+
+    earliest = min(candidates, key=lambda c: c["from_date"])
+    return {
+        "from_date": str(earliest["from_date"]),
+        "to_date":   str(earliest["to_date"]),
+    }
+
+
 def check_employee_leaves(employee: str, date):
-        leaves = frappe.get_all(
+        leaves = frappe.db.count(
             "Leave Application",
             filters={
                 "employee": employee,
@@ -99,6 +123,16 @@ def check_employee_leaves(employee: str, date):
                 "to_date": [">=", date],
             }
         )
+        if not leaves:
+            leaves = frappe.db.count(
+                "Employee Appointment Times",
+                filters={
+                    "is_unavailable": 1,
+                    "employee": employee,
+                    "start_date": ["<=", date],
+                    "end_date": [">=", date],
+                },
+            )
         return leaves
 
 @frappe.whitelist()
@@ -189,7 +223,7 @@ def get_appointment_events(doctype, start, end, field_map, filters=None, fields=
         "customer", "customer_name", "customer_phone_number",
         "employee",  "department", "service",
         "status", "color", "special_request",
-        "paid_deposit",
+        "paid_deposit", "is_bride",
     ]
 
     filters = json.loads(filters) if filters else []
@@ -240,6 +274,19 @@ def get_appointment_events(doctype, start, end, field_map, filters=None, fields=
         for r in frappe.get_all("Customer", filters={"name": ["in", customer_ids]}, fields=["name", "mrn"])
     } if customer_ids else {}
 
+    unpaid_map = {}
+    if customer_ids:
+        for inv in frappe.get_all(
+            "Sales Invoice",
+            filters={
+                "customer": ["in", customer_ids],
+                "docstatus": 1,
+                "outstanding_amount": [">", 0],
+            },
+            fields=["customer", "outstanding_amount"],
+        ):
+            unpaid_map[inv.customer] = unpaid_map.get(inv.customer, 0) + inv.outstanding_amount
+
     for event in events:
         mrn = customer_map.get(event.get("customer"), "")
         mrn = str(mrn)
@@ -254,6 +301,9 @@ def get_appointment_events(doctype, start, end, field_map, filters=None, fields=
             "Payment Entry",
             {"is_customer_deposit": 1, "appointment": event.name},
         )
+
+        event["unpaid_amount"] = unpaid_map.get(event.get("customer"), 0)
+        event["has_unpaid_invoice"] = bool(event["unpaid_amount"])
 
         event["title"] = (
             f"{str(mrn)+' ' if mrn else ''}{customer_name}\n{service_name}\n{phone}".strip()

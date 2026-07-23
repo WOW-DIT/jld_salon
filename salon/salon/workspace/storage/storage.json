@@ -5,7 +5,7 @@
    "label": "Warehouse wise Stock Value"
   }
  ],
- "content": "[{\"id\":\"ZIa3TKitES\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Stock Value\",\"col\":4}},{\"id\":\"m0_bb9PQDP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Warehouses\",\"col\":4}},{\"id\":\"S-5DGaFO3B\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Active Items\",\"col\":4}},{\"id\":\"kID6FmfoBS\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Warehouse wise Stock Value\",\"col\":12}},{\"id\":\"ap4_tI-jwr\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"LVWLzfOkHt\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Your shortcuts</b></span>\",\"col\":12}},{\"id\":\"HIsud6uBRb\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item\",\"col\":3}},{\"id\":\"yZEsn85hSq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Material Request\",\"col\":3}},{\"id\":\"IBMXEUfJjq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Purchase Order\",\"col\":3}},{\"id\":\"QqYqajWn5A\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Purchase Analytics\",\"col\":3}},{\"id\":\"EH6GLVx5aB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Purchase Order Analysis\",\"col\":3}},{\"id\":\"uBQvkjDFTh\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Buying Dashboard\",\"col\":3}},{\"id\":\"ockttndp_z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Dashboard\",\"col\":3}},{\"id\":\"BSxmKtVhUv\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"mHv89PBwCD\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"R5mHH0Gpzh\",\"type\":\"card\",\"data\":{\"card_name\":\"Items & Pricing\",\"col\":4}},{\"id\":\"q5r3tkFKrD\",\"type\":\"card\",\"data\":{\"card_name\":\"Buying\",\"col\":4}},{\"id\":\"Nt1mzKJLlC\",\"type\":\"card\",\"data\":{\"card_name\":\"Selling\",\"col\":4}},{\"id\":\"rW_b9rI-e3\",\"type\":\"card\",\"data\":{\"card_name\":\"Warehouse & Stocks\",\"col\":4}},{\"id\":\"kM4p-HR1Io\",\"type\":\"card\",\"data\":{\"card_name\":\"Supplier\",\"col\":4}},{\"id\":\"p7Ow-vjQCn\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"d1i76F-MjR\",\"type\":\"card\",\"data\":{\"card_name\":\"Stock Reports\",\"col\":4}},{\"id\":\"iW7BCk8RIe\",\"type\":\"card\",\"data\":{\"card_name\":\"Buying Reports\",\"col\":4}}]",
+ "content": "[{\"id\":\"ZIa3TKitES\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Stock Value\",\"col\":4}},{\"id\":\"m0_bb9PQDP\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Warehouses\",\"col\":4}},{\"id\":\"S-5DGaFO3B\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Total Active Items\",\"col\":4}},{\"id\":\"kID6FmfoBS\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Warehouse wise Stock Value\",\"col\":12}},{\"id\":\"ap4_tI-jwr\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"LVWLzfOkHt\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 18px; letter-spacing: 0.18px;\\\"><b>Your shortcuts</b></span>\",\"col\":12}},{\"id\":\"HIsud6uBRb\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item\",\"col\":3}},{\"id\":\"yZEsn85hSq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Material Request\",\"col\":3}},{\"id\":\"IBMXEUfJjq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Purchase Order\",\"col\":3}},{\"id\":\"QqYqajWn5A\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Purchase Analytics\",\"col\":3}},{\"id\":\"EH6GLVx5aB\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Purchase Order Analysis\",\"col\":3}},{\"id\":\"uBQvkjDFTh\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Buying Dashboard\",\"col\":3}},{\"id\":\"ockttndp_z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Dashboard\",\"col\":3}},{\"id\":\"BSxmKtVhUv\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"mHv89PBwCD\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"R5mHH0Gpzh\",\"type\":\"card\",\"data\":{\"card_name\":\"Items & Pricing\",\"col\":4}},{\"id\":\"kM4p-HR1Io\",\"type\":\"card\",\"data\":{\"card_name\":\"Supplier\",\"col\":4}},{\"id\":\"-omwZNbIwm\",\"type\":\"card\",\"data\":{\"card_name\":\"Stock Transactions\",\"col\":4}},{\"id\":\"q5r3tkFKrD\",\"type\":\"card\",\"data\":{\"card_name\":\"Buying\",\"col\":4}},{\"id\":\"Nt1mzKJLlC\",\"type\":\"card\",\"data\":{\"card_name\":\"Selling\",\"col\":4}},{\"id\":\"EDsOZGD2C1\",\"type\":\"card\",\"data\":{\"card_name\":\"Data\",\"col\":4}},{\"id\":\"d1i76F-MjR\",\"type\":\"card\",\"data\":{\"card_name\":\"Stock Reports\",\"col\":4}},{\"id\":\"p7Ow-vjQCn\",\"type\":\"card\",\"data\":{\"card_name\":\"Settings\",\"col\":4}},{\"id\":\"rW_b9rI-e3\",\"type\":\"card\",\"data\":{\"card_name\":\"Tools\",\"col\":4}},{\"id\":\"iW7BCk8RIe\",\"type\":\"card\",\"data\":{\"card_name\":\"Buying Reports\",\"col\":4}}]",
  "creation": "2025-12-07 14:28:01.057437",
  "custom_blocks": [],
  "docstatus": 0,
@@ -93,65 +93,6 @@
    "label": "Pricing Rule",
    "link_count": 0,
    "link_to": "Pricing Rule",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Settings",
-   "link_count": 5,
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Card Break"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Buying Settings",
-   "link_count": 0,
-   "link_to": "Buying Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Stock Settings",
-   "link_count": 0,
-   "link_to": "Stock Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Delivery Settings",
-   "link_count": 0,
-   "link_to": "Delivery Settings",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Purchase Taxes and Charges Template",
-   "link_count": 0,
-   "link_to": "Purchase Taxes and Charges Template",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Terms and Conditions Template",
-   "link_count": 0,
-   "link_to": "Terms and Conditions",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -296,8 +237,8 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Buying",
-   "link_count": 6,
+   "label": "Settings",
+   "link_count": 8,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -305,12 +246,140 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Material Request",
+   "label": "Buying Settings",
    "link_count": 0,
-   "link_to": "Material Request",
+   "link_to": "Buying Settings",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Stock Settings",
+   "link_count": 0,
+   "link_to": "Stock Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Unit of Measure (UOM)",
+   "link_count": 0,
+   "link_to": "UOM",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Delivery Settings",
+   "link_count": 0,
+   "link_to": "Delivery Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Purchase Taxes and Charges Template",
+   "link_count": 0,
+   "link_to": "Purchase Taxes and Charges Template",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Terms and Conditions Template",
+   "link_count": 0,
+   "link_to": "Terms and Conditions",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "UOM Conversion Factor",
+   "link_count": 0,
+   "link_to": "UOM Conversion Factor",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Warehouse",
+   "link_count": 0,
+   "link_to": "Warehouse",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Tools",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Quick Stock Balance",
+   "link_count": 0,
+   "link_to": "Quick Stock Balance",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Stock Reconciliation",
+   "link_count": 0,
+   "link_to": "Stock Reconciliation",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Quality Inspection",
+   "link_count": 0,
+   "link_to": "Quality Inspection",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Quality Inspection Template",
+   "link_count": 0,
+   "link_to": "Quality Inspection Template",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Buying",
+   "link_count": 4,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
   },
   {
    "hidden": 0,
@@ -328,16 +397,6 @@
    "label": "Purchase Invoice",
    "link_count": 0,
    "link_to": "Purchase Invoice",
-   "link_type": "DocType",
-   "onboard": 0,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Purchase Receipt",
-   "link_count": 0,
-   "link_to": "Purchase Receipt",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -365,7 +424,7 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Warehouse & Stocks",
+   "label": "Stock Transactions",
    "link_count": 4,
    "link_type": "DocType",
    "onboard": 0,
@@ -374,9 +433,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Warehouse",
+   "label": "Material Request",
    "link_count": 0,
-   "link_to": "Warehouse",
+   "link_to": "Material Request",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -394,9 +453,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Quick Stock Balance",
+   "label": "Purchase Receipt",
    "link_count": 0,
-   "link_to": "Quick Stock Balance",
+   "link_to": "Purchase Receipt",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -404,9 +463,9 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Stock Reconciliation",
+   "label": "Delivery Note",
    "link_count": 0,
-   "link_to": "Stock Reconciliation",
+   "link_to": "Delivery Note",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
@@ -415,7 +474,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Selling",
-   "link_count": 4,
+   "link_count": 3,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -453,15 +512,34 @@
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Delivery Note",
+   "label": "Data",
+   "link_count": 2,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Data Import",
    "link_count": 0,
-   "link_to": "Delivery Note",
+   "link_to": "Data Import",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Data Export",
+   "link_count": 0,
+   "link_to": "Data Export",
    "link_type": "DocType",
    "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2026-01-20 17:06:21.236914",
+ "modified": "2026-06-16 13:28:36.748586",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Storage",

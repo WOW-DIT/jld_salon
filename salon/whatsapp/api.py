@@ -44,7 +44,7 @@ def webhook():
             )
             for b in broadcasts:
                 broadcast = frappe.get_doc("WhatsApp Message Broadcast", b.name)
-                broadcast.sending_status = "Failed"
+                broadcast.sending_status = "Partially Sent"
                 broadcast.cancel_requested = 1
                 broadcast.failure_reason = error_title
                 # broadcast.completed_numbers = broadcast.completed_numbers.replace(f"{user_number}\n", "\n")
@@ -151,8 +151,13 @@ def get_whatsapp_rate_limit(whatsapp_number_id):
         if success:
             message = data.get("message")
             rate_limit = message.get("whatsapp_business_manager_messaging_limit")
+            tier = rate_limit.split("_")[1]
+            if tier.endswith("K"):
+                value = int(tier[:-1]) * 1000
+            else:
+                value = int(tier)
             return {
-                "value": int(rate_limit.split("_")[1]),
+                "value": value,
                 "fieldtype": "Int",
             }
         
@@ -313,8 +318,11 @@ def get_all_services(language: str="ar"):
     
 
 @frappe.whitelist(methods=["GET"])
-def get_services_by_department(department: str, language: str="ar"):
+def get_services_by_department(department: str=None, language: str="ar"):
     try:
+        if not department:
+            raise Exception("department is required")
+        
         fields = ["name"]
 
         if language == "ar":
@@ -390,7 +398,7 @@ def get_all_employees():
 @frappe.whitelist(methods=["GET"])
 def get_employees_by_department(department: str):
     try:
-        employees_table = frappe.get_list(
+        employees_table = frappe.get_all(
             "Service Employee",
             filters={
                 "parent": department,
@@ -419,7 +427,7 @@ def get_employees_by_department(department: str):
 @frappe.whitelist(methods=["GET"])
 def get_employees_by_service(service: str):
     try:
-        employees_table = frappe.get_list(
+        employees_table = frappe.get_all(
             "Service Employee",
             filters={
                 "parent": service,
@@ -446,7 +454,7 @@ def get_employees_by_service(service: str):
 
 
 @frappe.whitelist(methods=["GET"])
-def get_times(date: str, department: str, employee: str):
+def get_times(date: str, department: str, service: str, employee: str):
     try:
         leaves = frappe.get_list(
             "Leave Application",
@@ -470,6 +478,7 @@ def get_times(date: str, department: str, employee: str):
                 current_appointment_id="None",
                 date=date,
                 department=department,
+                service_id=service,
                 employee=employee,
             ).get("times", [])
 
@@ -667,18 +676,26 @@ def create_appointment(
     selected_time: str,
     customer_name: str,
     customer_mobile_number: str,
+    is_bride: 0,
 ):
     try:
+        is_bride = int(is_bride)
         customer_id = frappe.get_value(
             "Customer",
-            {"customer_name": customer_name, "mobile_no": customer_mobile_number},
+            {"customer_name": ["like", f"%{customer_name}%"], "mobile_no": customer_mobile_number},
         )
         if not customer_id:
-            frappe.response.update({
-                "success": False,
-                "message": f"({customer_name}) customer with mobile number ({customer_mobile_number}) is not registered."
-            })
-            return
+
+            customer_id = frappe.get_value(
+                "Customer",
+                {"mobile_no": customer_mobile_number},
+            )
+            if not customer_id:
+                frappe.response.update({
+                    "success": False,
+                    "message": f"({customer_name}) customer with mobile number ({customer_mobile_number}) is not registered."
+                })
+                return
         
         date = datetime.strptime(selected_date, "%Y-%m-%d")
         weekday = date.weekday()
@@ -701,6 +718,7 @@ def create_appointment(
         appointment.customer_phone_number = customer_mobile_number
         appointment.appointment_with = "Customer"
         appointment.party = customer_id
+        appointment.is_bride = is_bride
         appointment.insert()
 
         frappe.db.commit()

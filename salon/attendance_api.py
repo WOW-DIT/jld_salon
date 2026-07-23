@@ -28,6 +28,19 @@ import datetime
 #     })
 #     return
 
+def _update_shift_last_checkin(shift_type, timestamp):
+    if not shift_type:
+        return
+    current = frappe.db.get_value("Shift Type", shift_type, "last_sync_of_checkin")
+    frappe.db.set_value(
+        "Shift Type",
+        shift_type,
+        "last_sync_of_checkin",
+        timestamp,
+        update_modified=False,
+    )
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def webhook(
     attendance: list,
@@ -77,6 +90,8 @@ def webhook(
             check_in_out.log_type = log_type
             check_in_out.device_id = device_id
             check_in_out.insert(ignore_permissions=True)
+
+            _update_shift_last_checkin(check_in_out.shift, timestamp)
 
             result.append({
                 "success": True,
