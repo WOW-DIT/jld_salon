@@ -66,7 +66,7 @@ def webhook(
             })
             continue
         try:
-            log_type = "IN" if punch == 1 else "OUT"
+            log_type = "IN" if punch == 0 else "OUT"
             if frappe.db.exists(
                 "Employee Checkin",
                 {

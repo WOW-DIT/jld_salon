@@ -4,6 +4,39 @@ from salon.whatsapp.utils import send_whatsapp_template
 from frappe import _
 from frappe.utils import flt
 
+
+
+def parse_scheduled_time(scheduled_time):
+    """
+    Accepts datetime object or string, returns (date_str, time_str_12h_arabic)
+    """
+    if isinstance(scheduled_time, str):
+        # Try common frappe datetime formats
+        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
+            try:
+                dt = datetime.strptime(scheduled_time, fmt)
+                break
+            except ValueError:
+                continue
+        else:
+            raise ValueError(f"Unrecognized datetime string format: {scheduled_time}")
+    elif isinstance(scheduled_time, datetime):
+        dt = scheduled_time
+    else:
+        # Handle date-only objects (no time component)
+        dt = datetime.combine(scheduled_time, datetime.min.time())
+
+    date_str = dt.strftime("%Y-%m-%d")
+
+    hour = dt.hour
+    minute = dt.minute
+    period = "صباحاً" if hour < 12 else "مساءً"
+    hour_12 = hour % 12 or 12  # convert 0 -> 12
+    time_str = f"{hour_12}:{minute:02d} {period}"
+
+    return date_str, time_str
+
+
 ###### Customer Deposit ######
 ### on_submit
 def on_payment_submit(doc, method=None):
@@ -395,17 +428,11 @@ def after_inserting_appointment(doc, method=None):
 def send_appointment_notifications(doc, method=None):
     if doc.send_confirmation_message == 0:
         return
-
     customer = frappe.get_doc("Customer", doc.party)
     whatsapp_settings = frappe.get_doc("WhatsApp Settings")
 
-    if isinstance(doc.scheduled_time, datetime):
-        appointment_datetime = doc.scheduled_time
-    else:
-        appointment_datetime = datetime.strptime(doc.scheduled_time, "%Y-%m-%d %H:%M:%S")
+    date, time = parse_scheduled_time(doc.scheduled_time)
 
-    # date = appointment_datetime.strftime("%Y-%m-%d")
-    # time = appointment_datetime.strftime("%H:%M")
     service_name = frappe.get_value("Item", doc.service, "item_name_in_arabic")
     if not service_name:
         service_name = frappe.get_value("Item", doc.service, "item_name")
@@ -424,6 +451,14 @@ def send_appointment_notifications(doc, method=None):
                     {
                         "type": "text",
                         "text": service_name
+                    },
+                    {
+                        "type": "text",
+                        "text": date
+                    },
+                    {
+                        "type": "text",
+                        "text": time
                     }
                 ]
             },

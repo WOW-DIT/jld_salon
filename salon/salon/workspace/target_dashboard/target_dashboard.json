@@ -9,7 +9,7 @@
    "label": "Services Income"
   }
  ],
- "content": "[{\"id\":\"HQIMW-VhKw\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports</b></span>\",\"col\":12}},{\"id\":\"BreyJEqUv0\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Employee Sales Summary\",\"col\":4}},{\"id\":\"RVTMMUpN_d\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service Sales Analysis\",\"col\":3}},{\"id\":\"wIVKnoKKcV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ym998L1M-7\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Monthly Target List\",\"col\":3}},{\"id\":\"GOWaSzx4Ap\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Employee Sales Target\",\"col\":4}},{\"id\":\"VqjXnX0p0S\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"2nw2Uo-AXQ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Monthly</span>\",\"col\":12}},{\"id\":\"Fujb1uhuRW\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Monthly Target\",\"col\":4}},{\"id\":\"17FQm3y-IQ\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Monthly Total Payments\",\"col\":4}},{\"id\":\"k6HtGdWP3H\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"byOkxqXpRr\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Daily</b></span>\",\"col\":12}},{\"id\":\"Yp86hgDBeE\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Daily Target\",\"col\":4}},{\"id\":\"qEn-0b-YBw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Daily Total Payments\",\"col\":4}},{\"id\":\"OBIJVsMU9w\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"7O4UYpm7nf\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Income</b></span>\",\"col\":12}},{\"id\":\"5P0lHjak4F\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Services Income\",\"col\":12}},{\"id\":\"Hngm0Xdwtv\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"bqapzp103b\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h3\\\">Ratings</span>\",\"col\":12}},{\"id\":\"bRYXRGLCsF\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Service Ratings\",\"col\":12}}]",
+ "content": "[{\"id\":\"HQIMW-VhKw\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Reports</b></span>\",\"col\":12}},{\"id\":\"BreyJEqUv0\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Employee Sales Summary\",\"col\":4}},{\"id\":\"RVTMMUpN_d\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Service Sales Analysis\",\"col\":3}},{\"id\":\"qPme2zM56j\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"New Customers Summary\",\"col\":3}},{\"id\":\"wIVKnoKKcV\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"ym998L1M-7\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Monthly Target List\",\"col\":3}},{\"id\":\"GOWaSzx4Ap\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Employee Sales Target\",\"col\":4}},{\"id\":\"VqjXnX0p0S\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"2nw2Uo-AXQ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Monthly</span>\",\"col\":12}},{\"id\":\"Fujb1uhuRW\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Monthly Target\",\"col\":4}},{\"id\":\"17FQm3y-IQ\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Monthly Total Payments\",\"col\":4}},{\"id\":\"k6HtGdWP3H\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"byOkxqXpRr\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Daily</b></span>\",\"col\":12}},{\"id\":\"Yp86hgDBeE\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Daily Target\",\"col\":4}},{\"id\":\"qEn-0b-YBw\",\"type\":\"number_card\",\"data\":{\"number_card_name\":\"Daily Total Payments\",\"col\":4}},{\"id\":\"OBIJVsMU9w\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"7O4UYpm7nf\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Income</b></span>\",\"col\":12}},{\"id\":\"5P0lHjak4F\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Services Income\",\"col\":12}},{\"id\":\"Hngm0Xdwtv\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"bqapzp103b\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h3\\\">Ratings</span>\",\"col\":12}},{\"id\":\"bRYXRGLCsF\",\"type\":\"chart\",\"data\":{\"chart_name\":\"Service Ratings\",\"col\":12}}]",
  "creation": "2025-12-24 11:54:52.501334",
  "custom_blocks": [],
  "docstatus": 0,
@@ -22,7 +22,7 @@
  "is_hidden": 0,
  "label": "Target Dashboard",
  "links": [],
- "modified": "2026-06-17 13:10:35.355363",
+ "modified": "2026-08-02 23:37:34.831118",
  "modified_by": "Administrator",
  "module": "Salon",
  "name": "Target Dashboard",
@@ -55,6 +55,14 @@
  ],
  "sequence_id": 1.0,
  "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "New Customers Summary",
+   "link_to": "New Customers Summary",
+   "report_ref_doctype": "Customer",
+   "type": "Report"
+  },
   {
    "color": "Grey",
    "doc_view": "List",

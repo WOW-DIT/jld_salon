@@ -197,6 +197,7 @@
   {
    "fieldname": "broadcast_template",
    "fieldtype": "Link",
+   "hidden": 1,
    "label": "Broadcast Template",
    "options": "WhatsApp Message Broadcast Template"
   },
@@ -215,7 +216,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-16 12:13:50.332098",
+ "modified": "2026-07-26 16:07:26.641613",
  "modified_by": "Administrator",
  "module": "WhatsApp",
  "name": "WhatsApp Message Broadcast",
